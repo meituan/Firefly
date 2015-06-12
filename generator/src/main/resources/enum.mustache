@@ -12,6 +12,11 @@ public enum {{name}} {
     {{/elems}}
     {{emptyLine}}
     private final static Map<Integer, {{name}}> map = new HashMap<Integer, {{name}}>();
+    static {
+        {{#elems}}
+            map.put({{id}}, {{name}});
+        {{/elems}}
+    }
     private final int value;
     private {{name}} (int value) {
         this.value = value;
