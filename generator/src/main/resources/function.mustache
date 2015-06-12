@@ -1,0 +1,3 @@
+    {{&doc}}
+    @Func(oneway = {{oneway}}, value = { {{#exceptions}}{{^first}}, {{/first}}@Field(id = {{id}}, required = {{required}}){{/exceptions}} })
+    public {{&funcType}} {{&name}} ({{#params}}{{^first}}, {{/first}}@Field(id = {{id}}, required = {{required}}) {{&fieldType}} {{&name}}{{/params}}) throws {{#exceptions}}{{&fieldType}}, {{/exceptions}} TException;

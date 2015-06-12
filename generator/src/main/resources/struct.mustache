@@ -1,0 +1,16 @@
+package {{package}}
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import com.meituan.firefly.annotations.*;
+
+{{&doc}}
+{{#isUnion}}
+@Union
+{{/isUnion}}
+public class {{&name}} {{#isException}}extends Exception{{/isException}} {
+{{#fields}}
+    {{> field}}
+{{/fields}}
+}

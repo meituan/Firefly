@@ -1,0 +1,13 @@
+package {{package}}
+
+import com.meituan.firefly.annotations.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public interface Consts {
+{{#consts}}
+    {{&doc}}
+    {{&fieldType}} {{&name}} = {{&value}};
+{{/consts}}
+}

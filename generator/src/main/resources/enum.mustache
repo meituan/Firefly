@@ -1,0 +1,23 @@
+package {{package}}
+
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+{{&doc}}
+public enum {{name}} {
+    {{#elems}}
+        {{name}}({{id}}){{#last}};{{/last}}{{^last}},{{/last}}
+    {{/elems}}
+    {{emptyLine}}
+    private final static Map<Integer, {{name}}> map = new HashMap<Integer, {{name}}>();
+    private final int value;
+    private {{name}} (int value) {
+        this.value = value;
+    }
+
+    public int getValue(){ return value; }
+
+    public static {{name}} findByValue(int value) { return map.get(value); }
+}
