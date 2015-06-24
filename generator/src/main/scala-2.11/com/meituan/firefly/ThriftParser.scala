@@ -11,7 +11,8 @@ import scala.util.parsing.combinator._
 /**
  * Created by ponyets on 15/5/19.
  */
-class ThriftParser extends RegexParsers {
+class ThriftParser(dir: File) extends RegexParsers {
+  assert(dir == null || dir.isDirectory)
   //                            1    2           3                     4         4a    4b    4c       4d
   override val whiteSpace = """(\s+|(//.*\r?\n)|(#([^@\r\n].*)?\r?\n)|(/\*[^\*]([^\*]+|\r?\n|\*(?!/))*\*/))+""".r
   // 1: whitespace, 1 or more
@@ -26,7 +27,7 @@ class ThriftParser extends RegexParsers {
 
 
   //Document
-  lazy val document: Parser[Document] = rep(header) ~ rep(definition) <~ opt(comments)^^ {
+  lazy val document: Parser[Document] = rep(header) ~ rep(definition) <~ opt(comments) ^^ {
     case headers ~ defs => Document(headers, defs)
   }
 
@@ -34,7 +35,7 @@ class ThriftParser extends RegexParsers {
   lazy val header: Parser[Header] = include | namespace
 
   lazy val include: Parser[Include] = opt(comments) ~> "include" ~> literal ^^ {
-    s => Include(s.value, parseFile(new File(s.value)))
+    s => Include(s.value, parseFile(new File(dir, s.value)))
   }
 
   lazy val namespace: Parser[NameSpace] = opt(comments) ~> "namespace" ~> namespaceScope ~ identifier ^^ {
@@ -223,7 +224,7 @@ class ThriftParser extends RegexParsers {
    * Matches scaladoc/javadoc style comments.
    */
   lazy val comments: Parser[String] = {
-    rep1("""(?s)/\*\*.+?\*/""".r) ^^ {
+    rep1( """(?s)/\*\*.+?\*/""".r) ^^ {
       case cs =>
         cs.mkString("\n")
     }

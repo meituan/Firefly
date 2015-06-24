@@ -16,6 +16,10 @@ object Main {
     help("help") text ("prints this usage text")
     arg[File]("<file>...") unbounded() action { (file, c) =>
       c.copy(thriftFiles = file :: c.thriftFiles)
-    }
+    } text("thrift files ")
+    opt[File]("output") valueName("<path>") action { (file, c) =>
+      assert(file.isDirectory)
+      c.copy(output = file)
+    } text("gen code output dir")
   }
 }

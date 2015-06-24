@@ -111,7 +111,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     containerType match {
       case t: ListType =>
         val typeParam = convertType(t.typeParam, doc)
-        s"List<$typeParam}>"
+        s"List<$typeParam>"
       case t: SetType =>
         val typeParam = convertType(t.typeParam, doc)
         s"Set<$typeParam>"
@@ -145,7 +145,12 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
   def convertConstValue(fieldType: Type, value: ConstValue, doc: Document): String = {
     value match {
       case v: Literal => "\"" + v.value + "\""
-      case v: IntConstant => v.value.toString
+      case v: IntConstant =>
+        fieldType match {
+          case TI16 => "(short) " + v.value.toString
+          case TI32 => v.value.toString
+          case TI64 => v.value.toString + "l"
+        }
       case v: DoubleConstant => v.value.toString
       case v: IdConstant => convertIdConstant(v, doc)
       case v: ConstList =>
@@ -182,14 +187,15 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
       }
     } + ("doc" -> structLike.comment) +
       ("fields" -> {
-        val idFilledFields = structLike.fields.filter(_.id.isDefined) ++ structLike.fields.filter(_.id.isEmpty).zipWithIndex.map(p => p._1.copy(Some(-1 - p._2)))
-        for (field <- idFilledFields) yield convertField(field, document)
+        for (field <- fillFieldsIds(structLike.fields)) yield convertField(field, document)
       })
   }
 
+  def fillFieldsIds(fields: Seq[Field]) = fields.filter(_.id.isDefined) ++ fields.filter(_.id.isEmpty).zipWithIndex.map(p => p._1.copy(Some(-1 - p._2)))
+
   def convertField(field: Field, document: Document): Map[String, Any] = Map(
     "doc" -> field.comment, "id" -> field.id,
-    "required" -> field.requiredness.map(_ == Requiredness.Required).getOrElse(true),
+    "required" -> field.requiredness.map(_ == Requiredness.Required).getOrElse(false),
     "fieldType" -> convertType(field.fieldType, document),
     "name" -> field.identifier.name,
     "value" -> field.value.map(convertConstValue(field.fieldType, _, document))
@@ -228,7 +234,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     "exceptions" -> function.throws.map {
       exceptions =>
         def convertExceptionField(field: Field) = Map("id" -> field.id.get,
-          "required" -> field.requiredness.map(Requiredness.Required == _).getOrElse(true),
+          "required" -> field.requiredness.map(Requiredness.Required == _).getOrElse(false),
           "fieldType" -> convertType(field.fieldType, document)
         )
         val idFilledExceptions = exceptions.filter(_.id.isDefined) ++ exceptions.filter(_.id.isEmpty).zipWithIndex.map(p => p._1.copy(Some(-1 - p._2)))
@@ -240,7 +246,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     "funcType" -> (if (OnewayVoid == function.functionType) "void" else convertType(function.functionType, document)),
     "name" -> function.name.name,
     "params" -> {
-      function.params match {
+      fillFieldsIds(function.params) match {
         case head :: tail => (convertField(head, document) + ("first" -> true)) :: tail.map(convertField(_, document))
         case _ => Seq()
       }
