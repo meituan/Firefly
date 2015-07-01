@@ -8,9 +8,7 @@ import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TMemoryBuffer;
 import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,49 +21,14 @@ import java.util.List;
  * Created by ponyets on 15/6/24.
  */
 public class FunctionCallTest {
-    static class FlushableMemoryBuffer extends TMemoryBuffer {
-        public FlushableMemoryBuffer(int size) {
-            super(size);
-        }
-
-        @Override
-        public void flush() throws TTransportException {
-        }
-    }
 
     Thrift thrift = new Thrift();
 
 
-    static class NotifyCheck implements TestService.Iface {
-        final int idToCheck;
-        boolean notified;
-
-        public NotifyCheck(int idToCheck) {
-            this.idToCheck = idToCheck;
-        }
-
-        @Override
-        public void notify(int id) throws TException {
-            if (id == idToCheck) {
-                notified = true;
-            }
-        }
-
-        @Override
-        public UnionB get(int id) throws TException {
-            return null;
-        }
-
-        @Override
-        public List<UnionB> getList(List<Short> ids) throws TException {
-            return null;
-        }
-    }
-
     @Test
     public void shouldReceiveOnewayMethod() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
-        com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.TProtocolFactory() {
+        com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
             @Override
             public TProtocol get() {
                 return new TBinaryProtocol(transport);

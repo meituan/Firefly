@@ -41,7 +41,16 @@ public class Thrift {
     }
 
     public interface TProtocolFactory {
-        TProtocol get();
+        TProtocol get(Method method, Object[] args);
+    }
+
+    public static abstract class SimpleTProtocolFactory implements TProtocolFactory {
+        @Override
+        public TProtocol get(Method method, Object[] args) {
+            return get();
+        }
+
+        public abstract TProtocol get();
     }
 
     public TypeAdapter getAdapter(Type type) {
@@ -87,24 +96,53 @@ public class Thrift {
         return new FunctionCall(method, this);
     }
 
+    private static class Chain implements Processor {
+        private final Processor pre;
+        private final Interceptor interceptor;
+
+        public Chain(Processor pre, Interceptor interceptor) {
+            this.pre = pre;
+            this.interceptor = interceptor;
+        }
+
+        @Override
+        public Object process(Method method, Object[] args, TProtocol protocol, int seqId) throws Throwable {
+            return interceptor.intercept(method, args, protocol, seqId, pre);
+        }
+    }
+
     private class Client implements InvocationHandler {
         private final TProtocolFactory protocolFactory;
         private int seqid;
+        private final Processor processor;
 
-        public Client(TProtocolFactory protocolFactory) {
+
+        public Client(TProtocolFactory protocolFactory, Interceptor[] interceptors) {
             this.protocolFactory = protocolFactory;
+            Processor processor = new Processor() {
+                @Override
+                public Object process(Method method, Object[] args, TProtocol protocol, int seqId) throws Throwable {
+                    return getFunctionCall(method).apply(args, protocol, seqId);
+                }
+            };
+            if (interceptors != null && interceptors.length > 0) {
+                for (Interceptor interceptor : interceptors) {
+                    processor = new Chain(processor, interceptor);
+                }
+            }
+            this.processor = processor;
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            return getFunctionCall(method).apply(args, protocolFactory.get(), ++seqid);
+            return processor.process(method, args, protocolFactory.get(method, args), ++seqid);
         }
     }
 
-    public <T> T create(Class<T> service, TProtocolFactory protocolFactory) {
+    public <T> T create(Class<T> service, TProtocolFactory protocolFactory, Interceptor... interceptors) {
         if (!service.isInterface()) {
             throw new IllegalArgumentException("service should be interface");
         }
-        return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[]{service}, new Client(protocolFactory));
+        return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[]{service}, new Client(protocolFactory, interceptors));
     }
 }
