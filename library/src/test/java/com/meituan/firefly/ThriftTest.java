@@ -1,11 +1,13 @@
 package com.meituan.firefly;
 
 import com.meituan.firefly.testfirefly.TestService;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TMemoryInputTransport;
 import org.apache.thrift.transport.TTransport;
 import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -45,6 +47,8 @@ public class ThriftTest {
         NotifyCheck notifyCheck = new NotifyCheck(100);
         com.meituan.firefly.testthrift.TestService.Processor<com.meituan.firefly.testthrift.TestService.Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<>(notifyCheck);
         testService.notify(100);
+        processor.process(new TBinaryProtocol(transport), new TBinaryProtocol(transport));
+        Assert.assertTrue(notifyCheck.notified);
         Assertions.assertThat(new int[]{interceptor2.inorder, interceptor1.inorder, interceptor1.outorder, interceptor2.outorder}).isEqualTo(new int[]{0, 1, 2, 3});
     }
 
@@ -65,6 +69,11 @@ public class ThriftTest {
         NotifyCheck notifyCheck = new NotifyCheck(100);
         com.meituan.firefly.testthrift.TestService.Processor<com.meituan.firefly.testthrift.TestService.Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<>(notifyCheck);
         testService.notify(100);
+        try {
+            processor.process(new TBinaryProtocol(transport), new TBinaryProtocol(transport));
+            Assert.assertFalse(notifyCheck.notified);
+        } catch (TException e) {
+        }
         Assertions.assertThat(notifyCheck.notified).isFalse();
     }
 
