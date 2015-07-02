@@ -2,11 +2,13 @@ organization := "com.meituan.firefly"
 
 name := "library"
 
-version := "1.0-SNAPSHOT"
+version := "0.1"
 
 scalaVersion := "2.11.6"
 
 libraryDependencies += "org.apache.thrift" % "libthrift" % "0.9.2"
+
+libraryDependencies += "com.squareup.okhttp" % "okhttp" % "2.4.0"
 
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test
 
