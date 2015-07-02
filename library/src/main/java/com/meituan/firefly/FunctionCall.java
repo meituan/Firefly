@@ -6,8 +6,8 @@ import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,16 +37,22 @@ public class FunctionCall {
     }
 
     void parseRequest(Method method, Thrift thrift) {
-        Parameter[] parameters = method.getParameters();
+        Annotation[][] parametersAnnotations = method.getParameterAnnotations();
         Type[] parameterTypes = method.getGenericParameterTypes();
-        for (int i = 0, n = parameters.length; i < n; i++) {
-            Parameter parameter = parameters[i];
-            Field paramField = parameter.getAnnotation(Field.class);
+        for (int i = 0, n = parametersAnnotations.length; i < n; i++) {
+            Field paramField = null;
+            Annotation[] parameterAnnotations = parametersAnnotations[i];
+            for (Annotation annotation : parameterAnnotations) {
+                if (annotation instanceof Field) {
+                    paramField = (Field) annotation;
+                    break;
+                }
+            }
             if (paramField == null) {
-                throw new IllegalArgumentException("parameter " + parameter.getName() + " of method " + methodName + " should be annotated with @Field");
+                throw new IllegalArgumentException("parameter" + " of method " + methodName + " is not annotated with @Field");
             }
             TypeAdapter typeAdapter = thrift.getAdapter(parameterTypes[i]);
-            requestTypeList.add(new FieldSpec(paramField.id(), paramField.required(), parameter.getName(), typeAdapter));
+            requestTypeList.add(new FieldSpec(paramField.id(), paramField.required(), paramField.name(), typeAdapter));
         }
     }
 
@@ -60,7 +66,7 @@ public class FunctionCall {
             for (int i = 0, n = exceptionFields.length; i < n; i++) {
                 Field exceptionField = exceptionFields[i];
                 TypeAdapter exceptionTypeAdapter = thrift.getAdapter(exceptions[i]);
-                responseExceptionTypeMap.put(exceptionField.id(), new FieldSpec(exceptionField.id(), false, exceptions[i].getSimpleName(), exceptionTypeAdapter));
+                responseExceptionTypeMap.put(exceptionField.id(), new FieldSpec(exceptionField.id(), false, exceptionField.name(), exceptionTypeAdapter));
             }
         }
     }

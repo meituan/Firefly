@@ -15,4 +15,6 @@ public @interface Field {
     boolean required() default true;
 
     short id();
+
+    String name();
 }

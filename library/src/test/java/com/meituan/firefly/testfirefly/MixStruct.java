@@ -8,7 +8,7 @@ import com.meituan.firefly.annotations.*;
 
 public class MixStruct {
     
-    @Field(id = 1, required = true) public Integer id;
+    @Field(id = 1, required = true, name = "id") public Integer id;
     
-    @Field(id = -1, required = true) public Integer uid;
+    @Field(id = -1, required = true, name = "uid") public Integer uid;
 }

@@ -8,5 +8,5 @@ import com.meituan.firefly.annotations.*;
 
 public class TestException extends Exception{
     
-    @Field(id = -1, required = false) public String message;
+    @Field(id = -1, required = false, name = "message") public String message;
 }

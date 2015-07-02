@@ -11,11 +11,11 @@ import com.meituan.firefly.annotations.*;
 public interface TestService {
     
     @Func(oneway = true, value = { })
-    public void notify(@Field(id = 1, required = true) Integer id) throws TException;
+    public void notify(@Field(id = 1, required = true, name = "id") Integer id) throws TException;
     
-    @Func(oneway = false, value = { @Field(id = -1, required = false)})
-    public UnionB get(@Field(id = -1, required = false) Integer id) throws TestException, TException;
+    @Func(oneway = false, value = { @Field(id = -1, required = false, name = "get")})
+    public UnionB get(@Field(id = -1, required = false, name = "id") Integer id) throws TestException, TException;
     
     @Func(oneway = false, value = { })
-    public List<UnionB> getList(@Field(id = -1, required = false) List<Short> ids) throws TException;
+    public List<UnionB> getList(@Field(id = -1, required = false, name = "ids") List<Short> ids) throws TException;
 }
