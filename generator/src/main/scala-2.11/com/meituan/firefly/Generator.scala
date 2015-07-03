@@ -150,6 +150,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case TI16 => "(short) " + v.value.toString
           case TI32 => v.value.toString
           case TI64 => v.value.toString + "l"
+          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "number")
         }
       case v: DoubleConstant => v.value.toString
       case v: IdConstant => convertIdConstant(v, doc)
@@ -235,7 +236,8 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
       exceptions =>
         def convertExceptionField(field: Field) = Map("id" -> field.id.get,
           "required" -> field.requiredness.map(Requiredness.Required == _).getOrElse(false),
-          "fieldType" -> convertType(field.fieldType, document)
+          "fieldType" -> convertType(field.fieldType, document),
+          "name" -> field.identifier.name
         )
         val idFilledExceptions = exceptions.filter(_.id.isDefined) ++ exceptions.filter(_.id.isEmpty).zipWithIndex.map(p => p._1.copy(Some(-1 - p._2)))
         idFilledExceptions match {
