@@ -17,9 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by ponyets on 15/6/24.
- */
 public class FunctionCallTest {
 
     Thrift thrift = new Thrift();

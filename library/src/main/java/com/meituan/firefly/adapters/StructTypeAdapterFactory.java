@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by ponyets on 15/6/18.
- */
 public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory {
     @Override
     public TypeAdapter create(Type type, Thrift thrift) {

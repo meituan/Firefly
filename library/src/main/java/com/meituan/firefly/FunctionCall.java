@@ -14,9 +14,9 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * Created by ponyets on 15/6/17.
+ * Executes real function call.
  */
-public class FunctionCall {
+class FunctionCall {
     private final List<FieldSpec> requestTypeList = new ArrayList<>();
     private final HashMap<Short, FieldSpec> responseExceptionTypeMap = new HashMap<>();
     private FieldSpec responseSuccessType;
@@ -24,7 +24,7 @@ public class FunctionCall {
     private final boolean oneway;
     private final TStruct argsStruct;
 
-    public FunctionCall(Method method, Thrift thrift) {
+    FunctionCall(Method method, Thrift thrift) {
         methodName = method.getName();
         Func func = method.getAnnotation(Func.class);
         if (func == null) {

@@ -8,9 +8,6 @@ import jdk.nashorn.internal.runtime.ParserException
 import scala.io.Source
 import scala.util.parsing.combinator._
 
-/**
- * Created by ponyets on 15/5/19.
- */
 class ThriftParser(dir: File) extends RegexParsers {
   assert(dir == null || dir.isDirectory)
   //                            1    2           3                     4         4a    4b    4c       4d
@@ -233,8 +230,6 @@ class ThriftParser(dir: File) extends RegexParsers {
   def parseFile(file: File): Document = {
     if (!file.canRead)
       throw new FileNotFoundException(file.getCanonicalPath + " not Found")
-    //    if (new File(".").getCanonicalPath != file.getParentFile.getCanonicalPath)
-    //      throw new FileNotFoundException(file.getCanonicalPath + " not in work dir")
     parseAll(document, Source.fromFile(file).mkString) match {
       case Success(result, _) => result
       case x@Failure(_, _) => throw new ParseException(x toString)

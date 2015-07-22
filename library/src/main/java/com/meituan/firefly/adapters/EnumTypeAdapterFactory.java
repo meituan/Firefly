@@ -11,9 +11,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-/**
- * Created by ponyets on 15/6/18.
- */
 public class EnumTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory {
     @Override
     public TypeAdapter create(Type type, Thrift thrift) {

@@ -4,9 +4,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by ponyets on 15/6/10.
- */
 public final class Maps {
     private Maps() {
     }

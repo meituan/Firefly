@@ -5,9 +5,6 @@ import org.apache.thrift.TException;
 
 import java.util.List;
 
-/**
- * Created by ponyets on 15/6/30.
- */
 class NotifyCheck implements com.meituan.firefly.testthrift.TestService.Iface {
     final int idToCheck;
     boolean notified;

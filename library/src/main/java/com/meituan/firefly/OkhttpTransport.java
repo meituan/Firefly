@@ -8,7 +8,7 @@ import org.apache.thrift.transport.TTransportException;
 import java.io.IOException;
 
 /**
- * Created by ponyets on 15/6/30.
+ * Http Thrift Transport implementation, using Okhttp
  */
 public class OkhttpTransport extends TTransport {
     public static final MediaType CONTENT_TYPE = MediaType.parse("application/x-thrift");

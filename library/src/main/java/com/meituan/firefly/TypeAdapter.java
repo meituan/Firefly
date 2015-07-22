@@ -8,13 +8,30 @@ import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 
 /**
- * Created by ponyets on 15/6/17.
+ * Write an object of specified type into protocol, or read an object of specified type from protocol.
  */
 public interface TypeAdapter<T> {
+    /**
+     * Write an object of type T into protocol
+     *
+     * @param t        the object to write
+     * @param protocol protocol to write into
+     * @throws TException
+     */
     void write(T t, TProtocol protocol) throws TException;
 
+    /**
+     * Read an object of type T from protocol
+     *
+     * @param protocol the protocol to read from
+     * @return
+     * @throws TException
+     */
     T read(TProtocol protocol) throws TException;
 
+    /**
+     * @return Thrift {@link TType} of the specified type
+     */
     byte getTType();
 
     interface TypeAdapterFactory {

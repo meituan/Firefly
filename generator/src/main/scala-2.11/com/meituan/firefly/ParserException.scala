@@ -1,8 +1,5 @@
 package com.meituan.firefly
 
-/**
- * Created by ponyets on 15/5/20.
- */
 class ParseException(reason: String, cause: Throwable) extends Exception(reason, cause) {
   def this(reason: String) = this(reason, null)
 }
@@ -24,8 +21,7 @@ class UnionFieldInvalidNameException(union: String, field: String)
 // warnings (non-severe errors). If the strict mode is on, Scrooge will throw these exceptions;
 // otherwise it merely prints warnings.
 class ParseWarning(reason: String, cause: Throwable)
-  extends ParseException(reason, cause)
-{
+  extends ParseException(reason, cause) {
   def this(reason: String) = this(reason, null)
 }
 

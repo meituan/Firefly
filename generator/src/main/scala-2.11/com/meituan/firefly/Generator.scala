@@ -8,9 +8,6 @@ import org.fusesource.scalate.util.{FileResourceLoader, Resource}
 
 import scala.collection.mutable.ListBuffer
 
-/**
- * Created by ponyets on 15/6/8.
- */
 class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen")) extends (Document => Seq[File]) {
   val engine = new TemplateEngine()
   engine.resourceLoader = new FileResourceLoader {

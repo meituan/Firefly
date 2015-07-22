@@ -5,7 +5,8 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 
 /**
- * Created by ponyets on 15/6/17.
+ * Utils for type resolve.<br />
+ * Copy a lot of code from Gson shamelessly.
  */
 public class Types {
     public static Class<?> getRawType(Type type) {
@@ -39,16 +40,6 @@ public class Types {
             String className = type == null ? "null" : type.getClass().getName();
             throw new IllegalArgumentException("Expected a Class, ParameterizedType, or "
                     + "GenericArrayType, but <" + type + "> is of type " + className);
-        }
-    }
-
-    public static Type[] getParameterTypes(Type type, Type baseType) {
-        for (; type instanceof Class && !type.equals(baseType); ((Class) type).getGenericSuperclass()) ;
-        if (type instanceof Class) {
-            throw new RuntimeException("Missing type parameter.");
-        } else {
-            ParameterizedType parameterized = (ParameterizedType) type;
-            return parameterized.getActualTypeArguments();
         }
     }
 

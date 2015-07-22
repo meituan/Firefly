@@ -13,9 +13,6 @@ import java.lang.reflect.Type;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Created by ponyets on 15/6/18.
- */
 public class SetTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory {
     @Override
     public TypeAdapter create(Type type, Thrift thrift) {

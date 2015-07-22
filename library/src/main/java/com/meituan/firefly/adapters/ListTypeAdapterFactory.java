@@ -13,9 +13,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by ponyets on 15/6/18.
- */
 public class ListTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory {
     @Override
     public TypeAdapter create(Type type, Thrift thrift) {

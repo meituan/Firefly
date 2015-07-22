@@ -15,9 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by ponyets on 15/6/23.
- */
 public class ThriftTest {
     Thrift thrift = new Thrift();
 

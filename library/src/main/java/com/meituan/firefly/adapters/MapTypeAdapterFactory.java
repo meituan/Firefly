@@ -13,9 +13,6 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by ponyets on 15/6/18.
- */
 public class MapTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory {
 
     @Override

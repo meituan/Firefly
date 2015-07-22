@@ -14,9 +14,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by ponyets on 15/6/24.
- */
 public class StructTypeAdapterTest {
     Thrift thrift = new Thrift();
 
