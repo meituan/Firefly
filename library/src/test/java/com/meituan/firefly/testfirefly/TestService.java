@@ -13,7 +13,7 @@ public interface TestService {
     @Func(oneway = true, value = { })
     public void notify(@Field(id = 1, required = true, name = "id") Integer id) throws TException;
     
-    @Func(oneway = false, value = { @Field(id = -1, required = false, name = "get")})
+    @Func(oneway = false, value = { @Field(id = -1, required = false, name = "testException")})
     public UnionB get(@Field(id = -1, required = false, name = "id") Integer id) throws TestException, TException;
     
     @Func(oneway = false, value = { })

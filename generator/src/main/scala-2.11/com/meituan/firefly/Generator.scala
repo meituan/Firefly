@@ -82,14 +82,16 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     )
   }
 
-  def convertType(fieldType: Type, doc: Document): String = {
+  def convertType(fieldType: Type, contextDoc: Document, targetDoc: Document): String = {
     fieldType match {
       case OnewayVoid | Void => "void"
       case t: BaseType => convertBaseType(t)
-      case t: ContainerType => convertContainerType(t, doc)
-      case t: IdentifierType => convertIdentifierType(t, doc)
+      case t: ContainerType => convertContainerType(t, contextDoc, targetDoc)
+      case t: IdentifierType => convertIdentifierType(t, contextDoc, targetDoc)
     }
   }
+
+  def convertType(fieldType: Type, doc: Document): String = convertType(fieldType, doc, doc)
 
   def convertBaseType(baseType: BaseType): String = {
     baseType match {
@@ -104,34 +106,37 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertContainerType(containerType: ContainerType, doc: Document) = {
+  def convertContainerType(containerType: ContainerType, contextDoc: Document, targetDoc: Document) = {
     containerType match {
       case t: ListType =>
-        val typeParam = convertType(t.typeParam, doc)
+        val typeParam = convertType(t.typeParam, contextDoc, targetDoc)
         s"List<$typeParam>"
       case t: SetType =>
-        val typeParam = convertType(t.typeParam, doc)
+        val typeParam = convertType(t.typeParam, contextDoc, targetDoc)
         s"Set<$typeParam>"
       case t: MapType =>
-        val keyParam = convertType(t.keyType, doc)
-        val valueParam = convertType(t.valueType, doc)
+        val keyParam = convertType(t.keyType, contextDoc, targetDoc)
+        val valueParam = convertType(t.valueType, contextDoc, targetDoc)
         s"Map<$keyParam, $valueParam>"
     }
   }
 
-  def convertIdentifierType(idType: IdentifierType, doc: Document) = {
+  def convertIdentifierType(idType: IdentifierType, contextDoc: Document, targetDoc: Document): String = {
+
+    def findNamedType(name: String, contextDoc: Document, targetDoc: Document) = {
+      contextDoc.defs.collectFirst { case struct: StructLike if struct.name.name == name => if (contextDoc == targetDoc) name else getNameSpace(contextDoc) + "." + name }
+        .orElse(contextDoc.defs.collectFirst { case enum: Enum if enum.name.name == name => if (contextDoc == targetDoc) name else getNameSpace(contextDoc) + "." + name })
+        .orElse(contextDoc.defs.collectFirst { case typedef: Typedef if typedef.name.name == name => convertType(typedef.definitionType, contextDoc, targetDoc) })
+        .getOrElse(throw new StructNotFoundException(idType.id.fullName))
+    }
     idType.id match {
-      case id: SimpleId => doc.defs.collectFirst { case struct: StructLike if struct.name == id => id.name }
-        .orElse(doc.defs.collectFirst { case enum: Enum if enum.name == id => id.name })
-        .getOrElse(throw new StructNotFoundException(id.fullName))
+      case id: SimpleId => findNamedType(id.name, contextDoc, targetDoc)
       case id: QualifiedId =>
-        val includeDocument: Document = getInclude(doc, id.qualifier).document
-        includeDocument.defs.collectFirst { case struct: StructLike if struct.name.name == id.name => id }
-          .orElse(includeDocument.defs.collectFirst { case enum: Enum if enum.name.name == id.name => id })
-          .map(getNameSpace(includeDocument) + "." + _.name)
-          .getOrElse(throw new StructNotFoundException(id.fullName))
+        val includeDocument: Document = getInclude(contextDoc, id.qualifier).document
+        findNamedType(id.name, includeDocument, targetDoc)
     }
   }
+
 
   def getInclude(doc: Document, fileName: String) = {
     doc.headers.collect {

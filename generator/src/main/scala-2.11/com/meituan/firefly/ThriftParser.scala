@@ -38,7 +38,7 @@ class ThriftParser(dir: File) extends RegexParsers {
   lazy val namespace: Parser[NameSpace] = opt(comments) ~> "namespace" ~> namespaceScope ~ identifier ^^ {
     case scope ~ id => NameSpace(scope, id)
   }
-  lazy val namespaceScope = "*" | "cpp" | "java" | "py" | "perl" | "rb" | "cocoa" | "csharp" | "php"
+  lazy val namespaceScope = "*" | "cpp" | "java" | "py" | "perl" | "rb" | "cocoa" | "csharp" | "php" | "as3"
 
   //Definition
   lazy val definition: Parser[Definition] = const | typedef | enum | struct | union | exception | service
@@ -113,7 +113,7 @@ class ThriftParser(dir: File) extends RegexParsers {
       checkFieldIds(throws.getOrElse(List()))
       Function(if (oneway.isDefined) OnewayVoid else funcType, name, params, throws, cm)
   }
-  lazy val functionType = fieldType | "void" ^^^ Void
+  lazy val functionType =  "void" ^^^ Void | fieldType
   lazy val throws = "throws" ~> "(" ~> rep(field) <~ ")"
   //Types
   lazy val fieldType: Parser[Type] = baseType | containerType | identifierType
