@@ -1,5 +1,6 @@
 package com.meituan.firefly.node
 
+
 sealed abstract class Type
 
 case object OnewayVoid extends Type

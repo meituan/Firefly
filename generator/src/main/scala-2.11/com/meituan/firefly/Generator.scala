@@ -8,6 +8,12 @@ import org.fusesource.scalate.util.{FileResourceLoader, Resource}
 
 import scala.collection.mutable.ListBuffer
 
+/**
+ * A generator is used to generate code from a specified thrift file.<br />
+ * It use mustache template language.
+ * @param defaultNameSpace default namespace if the thrift file does not specify one
+ * @param output output dir for generated code
+ */
 class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen")) extends (Document => Seq[File]) {
   val engine = new TemplateEngine()
   engine.resourceLoader = new FileResourceLoader {
@@ -34,6 +40,11 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
+  /**
+   * generates code from the Document.
+   * @param doc
+   * @return
+   */
   override def apply(doc: Document): Seq[File] = {
     val nameSpace = getNameSpace(doc)
     val nameSpaceFolder = getNameSpaceFolder(nameSpace)
@@ -70,6 +81,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     listBuf
   }
 
+  /**
+   * converts a Const Node in the Document to a Map, which is applied to const.mustache template.
+   * @param baseMap
+   * @param consts
+   * @param doc
+   * @return
+   */
   def convertConsts(baseMap: Map[String, Any], consts: Seq[Const], doc: Document): Map[String, Any] = {
     val constsValue: Seq[Map[String, Any]] = for (const <- consts) yield convertConst(const, doc)
     baseMap + ("consts" -> constsValue)
@@ -181,6 +199,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
+  /**
+   * converts a Struct/Union/Exception Node in the Document to a Map, which is applied to struct.mustache template.
+   * @param baseMap
+   * @param structLike
+   * @param document
+   * @return
+   */
   def convertStructLike(baseMap: Map[String, Any], structLike: StructLike, document: Document): Map[String, Any] = {
     baseMap ++ Map("name" -> structLike.name.fullName) ++ {
       structLike match {
@@ -204,6 +229,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     "value" -> field.value.map(convertConstValue(field.fieldType, _, document))
   )
 
+  /**
+   * converts a Enum Node in the Document to a Map, which is applied to enum.mustache template.
+   * @param baseMap
+   * @param enum
+   * @param document
+   * @return
+   */
   def convertEnum(baseMap: Map[String, Any], enum: Enum, document: Document): Map[String, Any] = {
     baseMap + ("doc" -> enum.comment) + ("name" -> enum.name.name) +
       ("elems" -> (if (enum.elems.isEmpty) Seq()
@@ -214,6 +246,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
       }))
   }
 
+  /**
+   * converts a Service Node in the Document to a Map, which is applied to service.mustache template.
+   * @param baseMap
+   * @param service
+   * @param document
+   * @return
+   */
   def convertService(baseMap: Map[String, Any], service: Service, document: Document): Map[String, Any] = {
     baseMap ++
       Map("doc" -> service.comment,
