@@ -16,7 +16,6 @@ public interface TypeAdapter<T> {
      *
      * @param t        the object to write
      * @param protocol protocol to write into
-     * @throws TException
      */
     void write(T t, TProtocol protocol) throws TException;
 
@@ -24,8 +23,6 @@ public interface TypeAdapter<T> {
      * Read an object of type T from protocol
      *
      * @param protocol the protocol to read from
-     * @return
-     * @throws TException
      */
     T read(TProtocol protocol) throws TException;
 

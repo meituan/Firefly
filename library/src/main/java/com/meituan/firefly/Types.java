@@ -5,7 +5,7 @@ import java.lang.reflect.*;
 import java.util.Arrays;
 
 /**
- * Utils for type resolve.<br />
+ * Utils for type resolve.<br>
  * Copy a lot of code from Gson shamelessly.
  */
 public class Types {
@@ -59,9 +59,6 @@ public class Types {
         return a == b || (a != null && a.equals(b));
     }
 
-    /**
-     * Returns true if {@code a} and {@code b} are equal.
-     */
     public static boolean equals(Type a, Type b) {
         if (a == b) {
             // also handles (a == null && b == null)

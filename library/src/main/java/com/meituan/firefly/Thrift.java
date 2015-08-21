@@ -156,6 +156,9 @@ public class Thrift {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (method.getDeclaringClass() == Object.class) {
+                return method.invoke(this, args);
+            }
             return processor.process(method, args, protocolFactory.get(method, args), ++seqid);
         }
     }
@@ -166,7 +169,6 @@ public class Thrift {
      * @param service         a interface generated from a service in thrift's idl
      * @param protocolFactory a factory return protocols used in every method call
      * @param interceptors    interceptors works as a chain, interceptor in front will be executed downstream
-     * @param <T>
      * @return an instance implements the service interface
      */
     public <T> T create(Class<T> service, TProtocolFactory protocolFactory, Interceptor... interceptors) {
