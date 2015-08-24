@@ -1,6 +1,7 @@
 package com.meituan.firefly;
 
 import com.meituan.firefly.adapters.*;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 
 import java.lang.reflect.InvocationHandler;
@@ -43,6 +44,7 @@ public class Thrift {
     private final Map<Method, FunctionCall> functionCallMap = new HashMap<>();
     private final Map<Type, TypeAdapter> typeAdapterMap = new HashMap<>();
     private final List<TypeAdapter.TypeAdapterFactory> typeAdapterFactories = new ArrayList<>();
+    private final ThreadLocal<Map<Type, FutureTypeAdapter<?>>> calls = new ThreadLocal<>();
 
     {
         typeAdapterMap.put(Boolean.class, BOOLEAN_TYPE_ADAPTER);
@@ -81,15 +83,38 @@ public class Thrift {
             synchronized (typeAdapterMap) {
                 typeAdapter = typeAdapterMap.get(canonicalizeType);
                 if (typeAdapter == null) {
-                    typeAdapter = createConverter(canonicalizeType);
-                    typeAdapterMap.put(canonicalizeType, typeAdapter);
+                    Map<Type, FutureTypeAdapter<?>> threadCalls = calls.get();
+                    boolean requiresThreadLocalCleanup = false;
+                    if (threadCalls == null) {
+                        threadCalls = new HashMap<>();
+                        calls.set(threadCalls);
+                        requiresThreadLocalCleanup = true;
+                    }
+                    FutureTypeAdapter ongoingCall = threadCalls.get(canonicalizeType);
+                    if (ongoingCall != null) {
+                        return ongoingCall;
+                    }
+
+                    try {
+                        FutureTypeAdapter call = new FutureTypeAdapter();
+                        threadCalls.put(canonicalizeType, call);
+
+                        typeAdapter = createTypeAdapter(canonicalizeType);
+                        call.setDelegate(typeAdapter);
+                        typeAdapterMap.put(canonicalizeType, typeAdapter);
+                    } finally {
+                        threadCalls.remove(canonicalizeType);
+                        if (requiresThreadLocalCleanup) {
+                            calls.remove();
+                        }
+                    }
                 }
             }
         }
         return typeAdapter;
     }
 
-    TypeAdapter createConverter(Type type) {
+    TypeAdapter createTypeAdapter(Type type) {
         for (TypeAdapterFactory factory : typeAdapterFactories) {
             TypeAdapter typeAdapter = factory.create(type, this);
             if (typeAdapter != null) {
@@ -176,5 +201,37 @@ public class Thrift {
             throw new IllegalArgumentException("service should be interface");
         }
         return (T) Proxy.newProxyInstance(service.getClassLoader(), new Class<?>[]{service}, new Client(protocolFactory, interceptors));
+    }
+
+    static class FutureTypeAdapter<T> implements TypeAdapter<T> {
+        TypeAdapter<T> delegate;
+
+        void setDelegate(TypeAdapter<T> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void write(T t, TProtocol protocol) throws TException {
+            if (delegate == null) {
+                throw new IllegalStateException();
+            }
+            delegate.write(t, protocol);
+        }
+
+        @Override
+        public T read(TProtocol protocol) throws TException {
+            if (delegate == null) {
+                throw new IllegalStateException();
+            }
+            return delegate.read(protocol);
+        }
+
+        @Override
+        public byte getTType() {
+            if (delegate == null) {
+                throw new IllegalStateException();
+            }
+            return delegate.getTType();
+        }
     }
 }
