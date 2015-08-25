@@ -27,14 +27,16 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
             final boolean required;
             final Field field;
             final TypeAdapter adapter;
-            final TField tField;
 
             public FieldAdapter(short id, boolean required, Field field, TypeAdapter adapter) {
                 this.id = id;
                 this.required = required;
                 this.field = field;
                 this.adapter = adapter;
-                tField = new TField(field.getName(), adapter.getTType(), id);
+            }
+
+            TField getTTField(){
+                return new TField(field.getName(), adapter.getTType(), id);
             }
         }
 
@@ -82,7 +84,7 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
                     if (fieldSet && isUnion) {
                         throw new TProtocolException("Union with more than one field! Struct: " + rawType.getSimpleName());
                     }
-                    protocol.writeFieldBegin(fieldAdapter.tField);
+                    protocol.writeFieldBegin(fieldAdapter.getTTField());
                     fieldAdapter.adapter.write(fieldValue, protocol);
                     protocol.writeFieldEnd();
                     fieldSet = true;

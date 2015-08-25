@@ -64,20 +64,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.1.3</version>
+  <version>0.1.4</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.1.3'
+compile 'com.meituan.firefly:library:0.1.4'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.1.3"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.1.4"
 ```
 
 Given the following thrift file for example:
