@@ -170,6 +170,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case TI16 => "(short) " + v.value.toString
           case TI32 => v.value.toString
           case TI64 => v.value.toString + "l"
+          case TDouble => "(double) " + v.value.toString
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "number")
         }
       case v: DoubleConstant => v.value.toString
