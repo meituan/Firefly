@@ -6,6 +6,8 @@ case class Literal(value: String) extends ConstValue
 
 case class IntConstant(value: Long) extends ConstValue
 
+case class BoolConstant(value: Boolean) extends ConstValue
+
 case class DoubleConstant(value: Double) extends ConstValue
 
 case class IdConstant(id: Identifier) extends ConstValue

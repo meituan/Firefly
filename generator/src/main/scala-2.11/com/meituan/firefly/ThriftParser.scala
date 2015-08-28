@@ -138,7 +138,7 @@ class ThriftParser(dir: File) extends RegexParsers {
   lazy val setType = "set" ~> "<" ~> fieldType <~ ">" ^^ { case tp => SetType(tp) }
   lazy val listType = "list" ~> "<" ~> fieldType <~ ">" ^^ { case tp => ListType(tp) }
   //Constant Values
-  lazy val constValue = numberConstant | literal | constIdentifier | constList | constMap
+  lazy val constValue = numberConstant | boolConstant | literal | constIdentifier | constList | constMap
 
 
   lazy val intConstant = """[-+]?\d+(?!\.)""".r ^^ { x => IntConstant(x.toLong) }
@@ -147,6 +147,11 @@ class ThriftParser(dir: File) extends RegexParsers {
     case x =>
       if (x exists ("eE." contains _)) DoubleConstant(x.toDouble)
       else IntConstant(x.toLong)
+  }
+
+  lazy val boolConstant = {
+    "true" ^^^ BoolConstant(true) |
+    "false" ^^^ BoolConstant(false)
   }
 
   lazy val constIdentifier = identifier ^^ { case id => IdConstant(id) }

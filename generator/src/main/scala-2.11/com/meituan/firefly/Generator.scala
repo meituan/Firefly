@@ -164,16 +164,29 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
 
   def convertConstValue(fieldType: Type, value: ConstValue, doc: Document): String = {
     value match {
-      case v: Literal => "\"" + v.value + "\""
+      case v: Literal =>
+        fieldType match {
+          case TString => "\"" + v.value + "\""
+          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "string")
+        }
+      case v: BoolConstant =>
+        fieldType match {
+          case TBool => v.value.toString
+          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "bool")
+        }
       case v: IntConstant =>
         fieldType match {
           case TI16 => "(short) " + v.value.toString
           case TI32 => v.value.toString
           case TI64 => v.value.toString + "l"
           case TDouble => "(double) " + v.value.toString
-          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "number")
+          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "int")
         }
-      case v: DoubleConstant => v.value.toString
+      case v: DoubleConstant =>
+        fieldType match {
+          case TDouble => v.value.toString
+          case _ => throw new ValueTypeNotMatchException(fieldType.toString, "double")
+        }
       case v: IdConstant => convertIdConstant(v, doc)
       case v: ConstList =>
         fieldType match {
@@ -181,7 +194,6 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case SetType(tp) => "new java.util.HashSet(java.util.Arrays.asList(" + v.elems.map(convertConstValue(tp, _, doc)).mkString(", ") + "))"
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "list")
         }
-
       case v: ConstMap =>
         fieldType match {
           case MapType(keyType, valueType) =>
@@ -189,7 +201,6 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
             "com.meituan.firefly.util.Maps.asMap(" + kvs.mkString(", ") + ")"
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "map")
         }
-
     }
   }
 
