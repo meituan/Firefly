@@ -1,5 +1,6 @@
 package com.meituan.firefly;
 
+import com.meituan.firefly.testthrift.TestException;
 import com.meituan.firefly.testthrift.UnionB;
 import org.apache.thrift.TException;
 
@@ -27,6 +28,11 @@ class NotifyCheck implements com.meituan.firefly.testthrift.TestService.Iface {
 
     @Override
     public List<UnionB> getList(List<Short> ids) throws TException {
+        return null;
+    }
+
+    @Override
+    public UnionB obserableMethod(int id) throws TestException, TException {
         return null;
     }
 }

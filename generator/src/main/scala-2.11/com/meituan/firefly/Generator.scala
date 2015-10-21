@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
  * @param defaultNameSpace default namespace if the thrift file does not specify one
  * @param output output dir for generated code
  */
-class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen")) extends ((Document, String) => Seq[File]) {
+class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen"), mode: Byte = Compiler.defaultMode) extends ((Document, String) => Seq[File]) {
   val engine = new TemplateEngine()
   engine.resourceLoader = new FileResourceLoader {
     override def resource(uri: String): Option[Resource] = Some(Resource.fromURL(getClass.getResource(uri)))
@@ -299,7 +299,9 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case _ => Seq()
         }
     }.getOrElse(Seq()),
-    "funcType" -> (if (OnewayVoid == function.functionType) "void" else convertType(function.functionType, document)),
+    "funcType" -> (if (OnewayVoid == function.functionType)if(Compiler.rxMode != mode) "void" else "Observable<Void>"
+    else if (Compiler.rxMode == mode) "Observable<" + convertType(function.functionType, document) + ">"
+    else convertType(function.functionType, document)),
     "name" -> function.name.name,
     "params" -> {
       fillFieldsIds(function.params) match {

@@ -113,7 +113,7 @@ class ThriftParser(dir: File) extends RegexParsers {
       checkFieldIds(throws.getOrElse(List()))
       Function(if (oneway.isDefined) OnewayVoid else funcType, name, params, throws, cm)
   }
-  lazy val functionType =  "void" ^^^ Void | fieldType
+  lazy val functionType = "void" ^^^ Void | fieldType
   lazy val throws = "throws" ~> "(" ~> rep(field) <~ ")"
   //Types
   lazy val fieldType: Parser[Type] = baseType | containerType | identifierType
@@ -151,7 +151,7 @@ class ThriftParser(dir: File) extends RegexParsers {
 
   lazy val boolConstant = {
     "true" ^^^ BoolConstant(true) |
-    "false" ^^^ BoolConstant(false)
+      "false" ^^^ BoolConstant(false)
   }
 
   lazy val constIdentifier = identifier ^^ { case id => IdConstant(id) }

@@ -10,6 +10,8 @@ libraryDependencies += "org.apache.thrift" % "libthrift" % "0.9.2"
 
 libraryDependencies += "com.squareup.okhttp" % "okhttp" % "2.4.0"
 
+libraryDependencies += "io.reactivex" % "rxjava" % "1.0.14"
+
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % Test
 
 libraryDependencies += "org.assertj" % "assertj-core" % "2.1.0" % Test

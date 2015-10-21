@@ -46,4 +46,5 @@ service TestService{
     oneway void notify(1:required i32 id);
     UnionB get(i32 id) throws (TestException testException);
     list<UnionB> getList(list<i16> ids);
+    UnionB obserableMethod(required i32 id)throws (TestException testException);
 }
