@@ -24,4 +24,8 @@ crossPaths := false
 
 javacOptions in (Compile, compile) ++= Seq("-source", "1.7", "-target", "1.7")
 
-publishTo := Some(Resolver.file("file", new File(Path.userHome.absolutePath + "/.m2/repository")))
+licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+
+bintrayPackage := "Firefly"
+
+bintrayPackageLabels := Seq("thrift", "android")

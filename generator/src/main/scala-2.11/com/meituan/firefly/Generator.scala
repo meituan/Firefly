@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
  * @param defaultNameSpace default namespace if the thrift file does not specify one
  * @param output output dir for generated code
  */
-class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen")) extends (Document => Seq[File]) {
+class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen")) extends ((Document, String) => Seq[File]) {
   val engine = new TemplateEngine()
   engine.resourceLoader = new FileResourceLoader {
     override def resource(uri: String): Option[Resource] = Some(Resource.fromURL(getClass.getResource(uri)))
@@ -45,7 +45,8 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
    * @param doc
    * @return
    */
-  override def apply(doc: Document): Seq[File] = {
+  override def apply(doc: Document, filename: String): Seq[File] = {
+    implicit val exceptionContext = s"@file $filename"
     val nameSpace = getNameSpace(doc)
     val nameSpaceFolder = getNameSpaceFolder(nameSpace)
     val baseMap = Map[String, Any]("package" -> nameSpace)
@@ -61,7 +62,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     val structs = doc.defs.collect { case x: StructLike => x }
     listBuf ++= (for (struct <- structs) yield {
       val structFile = new File(nameSpaceFolder, struct.name.name + ".java")
-      writeFile(structFile, engine.layout("/struct.mustache", convertStructLike(baseMap, struct, doc)))
+      writeFile(structFile, engine.layout("/struct.mustache", convertStructLike(baseMap, struct, doc)(exceptionContext + s" @${struct.getClass.getSimpleName} ${struct.name.fullName}")))
       structFile
     })
 
@@ -75,7 +76,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     val service = doc.defs.collect { case x: Service => x }
     listBuf ++= (for (service <- service) yield {
       val serviceFile = new File(nameSpaceFolder, service.name.name + ".java")
-      writeFile(serviceFile, engine.layout("/service.mustache", convertService(baseMap, service, doc)))
+      writeFile(serviceFile, engine.layout("/service.mustache", convertService(baseMap, service, doc)(exceptionContext + s" @service ${service.name.fullName}")))
       serviceFile
     })
     listBuf
@@ -88,19 +89,19 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
    * @param doc
    * @return
    */
-  def convertConsts(baseMap: Map[String, Any], consts: Seq[Const], doc: Document): Map[String, Any] = {
-    val constsValue: Seq[Map[String, Any]] = for (const <- consts) yield convertConst(const, doc)
+  def convertConsts(baseMap: Map[String, Any], consts: Seq[Const], doc: Document)(implicit exceptionContext: String): Map[String, Any] = {
+    val constsValue: Seq[Map[String, Any]] = for (const <- consts) yield convertConst(const, doc)(exceptionContext + s" @const ${const.name.fullName}")
     baseMap + ("consts" -> constsValue)
   }
 
-  def convertConst(const: Const, doc: Document): Map[String, Any] = {
+  def convertConst(const: Const, doc: Document)(implicit exceptionContext: String): Map[String, Any] = {
     Map("fieldType" -> convertType(const.fieldType, doc),
       "name" -> const.name.fullName,
       "value" -> convertConstValue(const.fieldType, const.value, doc)
     )
   }
 
-  def convertType(fieldType: Type, contextDoc: Document, targetDoc: Document): String = {
+  def convertType(fieldType: Type, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
     fieldType match {
       case OnewayVoid | Void => "void"
       case t: BaseType => convertBaseType(t)
@@ -109,7 +110,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertType(fieldType: Type, doc: Document): String = convertType(fieldType, doc, doc)
+  def convertType(fieldType: Type, doc: Document)(implicit exceptionContext: String): String = convertType(fieldType, doc, doc)
 
   def convertBaseType(baseType: BaseType): String = {
     baseType match {
@@ -124,7 +125,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertContainerType(containerType: ContainerType, contextDoc: Document, targetDoc: Document) = {
+  def convertContainerType(containerType: ContainerType, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String) = {
     containerType match {
       case t: ListType =>
         val typeParam = convertType(t.typeParam, contextDoc, targetDoc)
@@ -139,7 +140,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertIdentifierType(idType: IdentifierType, contextDoc: Document, targetDoc: Document): String = {
+  def convertIdentifierType(idType: IdentifierType, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
 
     def findNamedType(name: String, contextDoc: Document, targetDoc: Document) = {
       contextDoc.defs.collectFirst { case struct: StructLike if struct.name.name == name => if (contextDoc == targetDoc) name else getNameSpace(contextDoc) + "." + name }
@@ -156,13 +157,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
   }
 
 
-  def getInclude(doc: Document, fileName: String) = {
+  def getInclude(doc: Document, fileName: String)(implicit exceptionContext: String) = {
     doc.headers.collect {
       case i: Include => i
     }.find(i => i.file == fileName || i.file == fileName + ".thrift").getOrElse(throw new IncludeNotFoundException(fileName))
   }
 
-  def convertConstValue(fieldType: Type, value: ConstValue, doc: Document): String = {
+  def convertConstValue(fieldType: Type, value: ConstValue, doc: Document)(implicit exceptionContext: String = ""): String = {
     value match {
       case v: Literal =>
         fieldType match {
@@ -204,7 +205,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertIdConstant(value: IdConstant, doc: Document): String = {
+  def convertIdConstant(value: IdConstant, doc: Document)(implicit exceptionContext: String): String = {
     value.id match {
       case id: SimpleId => "Consts." + id.name
       case id: QualifiedId => getNameSpace(getInclude(doc, id.qualifier).document) + ".Consts." + id.name;
@@ -218,7 +219,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
    * @param document
    * @return
    */
-  def convertStructLike(baseMap: Map[String, Any], structLike: StructLike, document: Document): Map[String, Any] = {
+  def convertStructLike(baseMap: Map[String, Any], structLike: StructLike, document: Document)(implicit exceptionContext: String): Map[String, Any] = {
     baseMap ++ Map("name" -> structLike.name.fullName) ++ {
       structLike match {
         case x: Union => Map("isUnion" -> true)
@@ -227,13 +228,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
       }
     } + ("doc" -> structLike.comment) +
       ("fields" -> {
-        for (field <- fillFieldsIds(structLike.fields)) yield convertField(field, document)
+        for (field <- fillFieldsIds(structLike.fields)) yield convertField(field, document)(exceptionContext + s" @field ${field.identifier.fullName}")
       })
   }
 
   def fillFieldsIds(fields: Seq[Field]) = fields.filter(_.id.isDefined) ++ fields.filter(_.id.isEmpty).zipWithIndex.map(p => p._1.copy(Some(-1 - p._2)))
 
-  def convertField(field: Field, document: Document): Map[String, Any] = Map(
+  def convertField(field: Field, document: Document)(implicit exceptionContext: String): Map[String, Any] = Map(
     "doc" -> field.comment, "id" -> field.id,
     "required" -> field.requiredness.map(_ == Requiredness.Required).getOrElse(false),
     "fieldType" -> convertType(field.fieldType, document),
@@ -265,7 +266,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
    * @param document
    * @return
    */
-  def convertService(baseMap: Map[String, Any], service: Service, document: Document): Map[String, Any] = {
+  def convertService(baseMap: Map[String, Any], service: Service, document: Document)(implicit exceptionContext: String): Map[String, Any] = {
     baseMap ++
       Map("doc" -> service.comment,
         "name" -> service.name.name,
@@ -278,11 +279,11 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
             }.getOrElse(throw new ServiceNotFoundException(p.fullName))
           }
         },
-        "functions" -> (for (func <- service.functions) yield convertFunction(func, document))
+        "functions" -> (for (func <- service.functions) yield convertFunction(func, document)(exceptionContext + s" @function ${func.name.fullName}"))
       )
   }
 
-  def convertFunction(function: Function, document: Document): Map[String, Any] = Map(
+  def convertFunction(function: Function, document: Document)(implicit exceptionContext: String): Map[String, Any] = Map(
     "doc" -> function.comment,
     "oneway" -> (function.functionType == OnewayVoid),
     "exceptions" -> function.throws.map {
@@ -302,7 +303,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     "name" -> function.name.name,
     "params" -> {
       fillFieldsIds(function.params) match {
-        case head :: tail => (convertField(head, document) + ("first" -> true)) :: tail.map(convertField(_, document))
+        case head :: tail => (convertField(head, document)(exceptionContext + s" @param ${head.identifier.fullName}") + ("first" -> true)) :: tail.map(convertField(_, document))
         case _ => Seq()
       }
     }

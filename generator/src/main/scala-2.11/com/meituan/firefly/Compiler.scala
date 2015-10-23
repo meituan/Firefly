@@ -18,7 +18,7 @@ case class Compiler(thriftFiles: List[File] = List(), output: File = new File("g
     thriftFiles.foreach {
       file =>
         val document = new ThriftParser(file.getParentFile).parseFile(file)
-        generator(document)
+        generator(document, file.getName)
     }
   }
 }
