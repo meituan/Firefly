@@ -8,10 +8,14 @@ import org.apache.thrift.protocol.*;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import rx.Observable;
+import rx.Scheduler;
 
 /**
  * Executes real function call.
@@ -23,6 +27,7 @@ class FunctionCall {
     private final String methodName;
     private final boolean oneway;
     private final TStruct argsStruct;
+    private final boolean isObservable;
 
     FunctionCall(Method method, Thrift thrift) {
         methodName = method.getName();
@@ -31,6 +36,7 @@ class FunctionCall {
             throw new IllegalArgumentException("method " + methodName + " should be annotated with @Func");
         }
         oneway = func.oneway();
+        isObservable = getIsObservable(method);
         parseRequest(method, thrift);
         parseResponse(method, func, thrift);
         argsStruct = new TStruct(methodName + "_args");
@@ -57,7 +63,7 @@ class FunctionCall {
     }
 
     void parseResponse(Method method, Func func, Thrift thrift) {
-        TypeAdapter returnTypeAdapter = thrift.getAdapter(method.getGenericReturnType());
+        TypeAdapter returnTypeAdapter = thrift.getAdapter(getMethodReturnType(method));
         responseSuccessType = new FieldSpec((short) 0, false, "success", returnTypeAdapter); //success
 
         Field[] exceptionFields = func.value();
@@ -71,7 +77,46 @@ class FunctionCall {
         }
     }
 
+    private Type getMethodReturnType(Method method) {
+        Type type = method.getGenericReturnType();
+        if (isObservable) {
+            if (type instanceof ParameterizedType) {
+                type = ((ParameterizedType) type).getActualTypeArguments()[0];
+            } else {
+                type = Object.class;
+            }
+        }
+        return type;
+    }
+
+
     Object apply(Object[] args, TProtocol protocol, int seqid) throws Exception {
+        return apply(args, protocol, seqid, null);
+    }
+
+    Object apply(Object[] args, TProtocol protocol, int seqid, Scheduler subscribScheduler) throws Exception {
+        if (isObservable) {
+            Observable observable = Observable.create(subscriber -> {
+                try {
+                    if (subscriber.isUnsubscribed()) {
+                        return;
+                    }
+                    subscriber.onNext(getData(args, protocol, seqid));
+                    subscriber.onCompleted();
+                } catch (Exception e) {
+                    subscriber.onError(e);
+                }
+            });
+            if (null != subscribScheduler)
+                return observable.subscribeOn(subscribScheduler);
+            else
+                return observable;
+
+        }
+        return getData(args, protocol, seqid);
+    }
+
+    Object getData(Object[] args, TProtocol protocol, int seqid) throws Exception {
         send(args, protocol, seqid);
         if (!oneway) {
             return recv(protocol, seqid);
@@ -146,6 +191,10 @@ class FunctionCall {
             return success;
         }
         throw new TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, methodName + " failed: unknown result");
+    }
+
+    public boolean getIsObservable(Method method) {
+        return Observable.class.isAssignableFrom(Types.getRawType(method.getGenericReturnType()));
     }
 
     static class FieldSpec {

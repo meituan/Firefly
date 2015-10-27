@@ -1,5 +1,6 @@
 package com.meituan.firefly;
 
+import com.meituan.firefly.testfirefly.MixStruct;
 import com.meituan.firefly.testthrift.OrderedStruct;
 import com.meituan.firefly.testthrift.TestException;
 import com.meituan.firefly.testthrift.TestService;
@@ -9,6 +10,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
@@ -16,6 +18,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import rx.Observable;
+import rx.observers.TestSubscriber;
+import rx.schedulers.TestScheduler;
+import rx.subjects.TestSubject;
+
 
 public class FunctionCallTest {
 
@@ -56,6 +64,11 @@ public class FunctionCallTest {
             public List<UnionB> getList(List<Short> ids) throws TException {
                 return null;
             }
+
+            @Override
+            public UnionB obserableMethod(int id) throws TestException, TException {
+                return null;
+            }
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -63,6 +76,66 @@ public class FunctionCallTest {
         com.meituan.firefly.testfirefly.UnionB u = (com.meituan.firefly.testfirefly.UnionB) functionCall.recv(new TBinaryProtocol(transport), 1);
         Assert.assertNotNull(u);
         Assert.assertNotNull(u.os);
+        Assert.assertEquals((Integer) 1, u.os.id);
+    }
+
+    @Test
+    public void shouldReceiveObserable() throws Exception {
+        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+            @Override
+            public void notify(int id) throws TException {
+
+            }
+
+            @Override
+            public UnionB get(int id) throws TestException, TException {
+                return new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
+            }
+
+            @Override
+            public List<UnionB> getList(List<Short> ids) throws TException {
+                return null;
+            }
+
+            @Override
+            public UnionB obserableMethod(int id) throws TestException, TException {
+                return new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
+            }
+
+
+        });
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        TestScheduler testScheduler = new TestScheduler();
+        FunctionCall functionCall = new FunctionCall(com.meituan.firefly.rx_testfirefly.TestService.class.getMethod("obserableMethod", Integer.class), thrift);
+        Observable<com.meituan.firefly.rx_testfirefly.UnionB> observable;
+        try {
+            observable = (Observable<com.meituan.firefly.rx_testfirefly.UnionB>) functionCall.apply(new Object[]{1}, new TBinaryProtocol(transport), 1, testScheduler);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("return type of method is not obserable !");
+        }
+        Assert.assertNotNull(observable);
+        observable.subscribeOn(testScheduler);
+        observable.observeOn(testScheduler);
+        TestSubscriber<com.meituan.firefly.rx_testfirefly.UnionB> testSubscriber = new TestSubscriber();
+        observable.subscribe(testSubscriber);
+        testScheduler.triggerActions();
+        Assert.assertEquals(1, testSubscriber.getOnNextEvents().size());
+        com.meituan.firefly.rx_testfirefly.UnionB u = testSubscriber.getOnNextEvents().get(0);
+        Assert.assertNotNull(u);
         Assert.assertEquals((Integer) 1, u.os.id);
     }
 
@@ -82,6 +155,11 @@ public class FunctionCallTest {
 
             @Override
             public List<UnionB> getList(List<Short> ids) throws TException {
+                return null;
+            }
+
+            @Override
+            public UnionB obserableMethod(int id) throws TestException, TException {
                 return null;
             }
         });
@@ -114,6 +192,11 @@ public class FunctionCallTest {
             public List<UnionB> getList(List<Short> ids) throws TException {
                 return null;
             }
+
+            @Override
+            public UnionB obserableMethod(int id) throws TestException, TException {
+                return null;
+            }
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -143,6 +226,11 @@ public class FunctionCallTest {
                 }
                 return list;
             }
+
+            @Override
+            public UnionB obserableMethod(int id) throws TestException, TException {
+                return null;
+            }
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("getList", List.class), thrift);
         functionCall.send(new Object[]{Arrays.asList((short) 1, (short) 2, (short) 3)}, new TBinaryProtocol(transport), 1);
@@ -150,4 +238,5 @@ public class FunctionCallTest {
         List<com.meituan.firefly.testfirefly.UnionB> lu = (List<com.meituan.firefly.testfirefly.UnionB>) functionCall.recv(new TBinaryProtocol(transport), 1);
         Assertions.assertThat(lu).hasSize(3).hasOnlyElementsOfType(com.meituan.firefly.testfirefly.UnionB.class);
     }
+
 }

@@ -8,6 +8,7 @@ import scopt.OptionParser
  * Application's entrance
  */
 object Main {
+
   def main(args: Array[String]): Unit = {
     parser.parse(args, Compiler()).foreach(_.run())
   }
@@ -24,5 +25,10 @@ object Main {
       assert(file.isDirectory)
       c.copy(output = file)
     } text ("gen code output dir")
+    opt[Unit]("rx") action {
+      (sequence, c) => {
+        c.copy(mode = Compiler.rxMode)
+      }
+    }
   }
 }
