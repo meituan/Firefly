@@ -28,6 +28,7 @@ class FunctionCall {
     private final boolean oneway;
     private final TStruct argsStruct;
     private final boolean isObservable;
+    private boolean isVoid = false;
 
     FunctionCall(Method method, Thrift thrift) {
         methodName = method.getName();
@@ -63,9 +64,14 @@ class FunctionCall {
     }
 
     void parseResponse(Method method, Func func, Thrift thrift) {
-        TypeAdapter returnTypeAdapter = thrift.getAdapter(getMethodReturnType(method));
-        responseSuccessType = new FieldSpec((short) 0, false, "success", returnTypeAdapter); //success
-
+        Type type = getMethodReturnType(method);
+        //if return type is Void,we don't need to find adapter
+        if (Void.class.equals(type) || void.class.equals(type)) {
+            isVoid = true;
+        } else {
+            TypeAdapter returnTypeAdapter = thrift.getAdapter(type);
+            responseSuccessType = new FieldSpec((short) 0, false, "success", returnTypeAdapter); //success
+        }
         Field[] exceptionFields = func.value();
         Class<?>[] exceptions = method.getExceptionTypes();
         if (exceptionFields != null) {
@@ -101,7 +107,7 @@ class FunctionCall {
                     if (subscriber.isUnsubscribed()) {
                         return;
                     }
-                    subscriber.onNext(getData(args, protocol, seqid));
+                    subscriber.onNext(sendAndRecv(args, protocol, seqid));
                     subscriber.onCompleted();
                 } catch (Exception e) {
                     subscriber.onError(e);
@@ -113,10 +119,10 @@ class FunctionCall {
                 return observable;
 
         }
-        return getData(args, protocol, seqid);
+        return sendAndRecv(args, protocol, seqid);
     }
 
-    Object getData(Object[] args, TProtocol protocol, int seqid) throws Exception {
+    Object sendAndRecv(Object[] args, TProtocol protocol, int seqid) throws Exception {
         send(args, protocol, seqid);
         if (!oneway) {
             return recv(protocol, seqid);
@@ -189,6 +195,9 @@ class FunctionCall {
         }
         if (success != null) {
             return success;
+        }
+        if (isVoid) {
+            return null;
         }
         throw new TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, methodName + " failed: unknown result");
     }
