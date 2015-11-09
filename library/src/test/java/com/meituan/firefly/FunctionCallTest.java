@@ -1,6 +1,5 @@
 package com.meituan.firefly;
 
-import com.meituan.firefly.testfirefly.MixStruct;
 import com.meituan.firefly.testthrift.OrderedStruct;
 import com.meituan.firefly.testthrift.TestException;
 import com.meituan.firefly.testthrift.TestService;
@@ -22,7 +21,6 @@ import java.util.List;
 import rx.Observable;
 import rx.observers.TestSubscriber;
 import rx.schedulers.TestScheduler;
-import rx.subjects.TestSubject;
 
 
 public class FunctionCallTest {
@@ -47,6 +45,97 @@ public class FunctionCallTest {
     }
 
     @Test
+    public void shouldReceiveObserableWithOneway() throws Exception {
+        NotifyCheck notifyCheck = new NotifyCheck(100);
+        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        com.meituan.firefly.rx_testfirefly.TestService testService = thrift.create(com.meituan.firefly.rx_testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
+            @Override
+            public TProtocol get() {
+                return new TBinaryProtocol(transport);
+            }
+        });
+        TestSubscriber testSubscriber = new TestSubscriber();
+        testService.notify(100).subscribe(testSubscriber);
+        Assert.assertTrue(notifyCheck.notified);
+
+    }
+
+    @Test
+    public void voidMethodWithoutOneway() throws Exception {
+        NotifyCheck notifyCheck = new NotifyCheck(100);
+        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
+            @Override
+            public TProtocol get() {
+                return new TBinaryProtocol(transport);
+            }
+        });
+        testService.notifyWithoutOneway(100);
+        Assert.assertTrue(notifyCheck.notified);
+    }
+
+    @Test
+    public void voidMethodReceiveObserableWithoutOneway() throws Exception {
+        NotifyCheck notifyCheck = new NotifyCheck(100);
+        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        com.meituan.firefly.rx_testfirefly.TestService testService = thrift.create(com.meituan.firefly.rx_testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
+            @Override
+            public TProtocol get() {
+                return new TBinaryProtocol(transport);
+            }
+        });
+        TestSubscriber testSubscriber = new TestSubscriber();
+        testService.notifyWithoutOneway(100).subscribe(testSubscriber);
+        Assert.assertTrue(notifyCheck.notified);
+
+    }
+
+    @Test
     public void shouldReceiveResult() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
         TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
@@ -66,9 +155,11 @@ public class FunctionCallTest {
             }
 
             @Override
-            public UnionB obserableMethod(int id) throws TestException, TException {
-                return null;
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
             }
+
+
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -98,10 +189,9 @@ public class FunctionCallTest {
             }
 
             @Override
-            public UnionB obserableMethod(int id) throws TestException, TException {
-                return new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
-            }
+            public void notifyWithoutOneway(int id) throws TestException, TException {
 
+            }
 
         });
         TTransport transport = new FlushableMemoryBuffer(4096) {
@@ -120,7 +210,7 @@ public class FunctionCallTest {
             }
         };
         TestScheduler testScheduler = new TestScheduler();
-        FunctionCall functionCall = new FunctionCall(com.meituan.firefly.rx_testfirefly.TestService.class.getMethod("obserableMethod", Integer.class), thrift);
+        FunctionCall functionCall = new FunctionCall(com.meituan.firefly.rx_testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         Observable<com.meituan.firefly.rx_testfirefly.UnionB> observable;
         try {
             observable = (Observable<com.meituan.firefly.rx_testfirefly.UnionB>) functionCall.apply(new Object[]{1}, new TBinaryProtocol(transport), 1, testScheduler);
@@ -138,6 +228,7 @@ public class FunctionCallTest {
         Assert.assertNotNull(u);
         Assert.assertEquals((Integer) 1, u.os.id);
     }
+
 
     @Test(expected = com.meituan.firefly.testfirefly.TestException.class)
     public void shouldReceiveException() throws Exception {
@@ -159,9 +250,10 @@ public class FunctionCallTest {
             }
 
             @Override
-            public UnionB obserableMethod(int id) throws TestException, TException {
-                return null;
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
             }
+
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -194,9 +286,10 @@ public class FunctionCallTest {
             }
 
             @Override
-            public UnionB obserableMethod(int id) throws TestException, TException {
-                return null;
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
             }
+
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -228,9 +321,10 @@ public class FunctionCallTest {
             }
 
             @Override
-            public UnionB obserableMethod(int id) throws TestException, TException {
-                return null;
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
             }
+
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("getList", List.class), thrift);
         functionCall.send(new Object[]{Arrays.asList((short) 1, (short) 2, (short) 3)}, new TBinaryProtocol(transport), 1);

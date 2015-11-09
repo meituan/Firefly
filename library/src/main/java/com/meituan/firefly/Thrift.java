@@ -78,6 +78,10 @@ public class Thrift {
     }
 
     public TypeAdapter getAdapter(Type type) {
+        //void/Void check
+        if (Void.class.equals(type) || void.class.equals(type)) {
+            return null;
+        }
         final Type canonicalizeType = Types.canonicalize(type);
         TypeAdapter typeAdapter = typeAdapterMap.get(canonicalizeType);
         if (typeAdapter == null) {

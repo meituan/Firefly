@@ -32,7 +32,10 @@ class NotifyCheck implements com.meituan.firefly.testthrift.TestService.Iface {
     }
 
     @Override
-    public UnionB obserableMethod(int id) throws TestException, TException {
-        return null;
+    public void notifyWithoutOneway(int id) throws TestException, TException {
+        if (id == idToCheck) {
+            notified = true;
+        }
     }
+
 }

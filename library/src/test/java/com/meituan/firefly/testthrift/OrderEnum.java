@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum OrderEnum implements org.apache.thrift.TEnum {
+public enum OrderEnum implements TEnum {
   Order(1),
   UnOrder(2),
   Mix(3);

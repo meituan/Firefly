@@ -299,9 +299,20 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case _ => Seq()
         }
     }.getOrElse(Seq()),
-    "funcType" -> (if (OnewayVoid == function.functionType)if(Compiler.rxMode != mode) "void" else "Observable<Void>"
-    else if (Compiler.rxMode == mode) "Observable<" + convertType(function.functionType, document) + ">"
-    else convertType(function.functionType, document)),
+    "funcType" -> (
+      if (OnewayVoid == function.functionType) {
+        if (Compiler.rxMode != mode) "void" else "Observable<Void>"
+      } else {
+        if (Compiler.rxMode == mode) {
+          val retutrnType = convertType(function.functionType, document)
+          if ("void" == retutrnType)
+            "Observable<Void>"
+          else
+            "Observable<" + retutrnType + ">"
+        }
+        else convertType(function.functionType, document)
+      }
+      ),
     "name" -> function.name.name,
     "params" -> {
       fillFieldsIds(function.params) match {
