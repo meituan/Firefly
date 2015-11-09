@@ -53,6 +53,7 @@ $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
 If you want to generator file with Rx smell ,just put --rx in the last,like this:
+
 ```bash
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx'
@@ -118,7 +119,7 @@ Make sure that `ProtocolFactory.get()` return a new Protocol for each call, or r
 
 ## Roadmap
 
-- [ ] RxJava support 
+- [x] RxJava support 
 
 ## License
 

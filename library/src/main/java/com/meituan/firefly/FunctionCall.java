@@ -16,6 +16,7 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Scheduler;
+import rx.Subscriber;
 
 /**
  * Executes real function call.
@@ -100,17 +101,20 @@ class FunctionCall {
         return apply(args, protocol, seqid, null);
     }
 
-    Object apply(Object[] args, TProtocol protocol, int seqid, Scheduler subscribScheduler) throws Exception {
+    Object apply(final Object[] args, final TProtocol protocol, final int seqid, Scheduler subscribScheduler) throws Exception {
         if (isObservable) {
-            Observable observable = Observable.create(subscriber -> {
-                try {
-                    if (subscriber.isUnsubscribed()) {
-                        return;
+            Observable observable = Observable.create(new Observable.OnSubscribe<Object>() {
+                @Override
+                public void call(Subscriber<? super Object> subscriber) {
+                    try {
+                        if (subscriber.isUnsubscribed()) {
+                            return;
+                        }
+                        subscriber.onNext(FunctionCall.this.sendAndRecv(args, protocol, seqid));
+                        subscriber.onCompleted();
+                    } catch (Exception e) {
+                        subscriber.onError(e);
                     }
-                    subscriber.onNext(sendAndRecv(args, protocol, seqid));
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    subscriber.onError(e);
                 }
             });
             if (null != subscribScheduler)

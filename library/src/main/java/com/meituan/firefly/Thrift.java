@@ -172,9 +172,14 @@ public class Thrift {
             this(protocolFactory, null, interceptors);
         }
 
-        public Client(TProtocolFactory protocolFactory, Scheduler subscribScheduler, Interceptor[] interceptors) {
+        public Client(TProtocolFactory protocolFactory, final Scheduler subscribScheduler, Interceptor[] interceptors) {
             this.protocolFactory = protocolFactory;
-            Processor processor = (method, args, protocol, seqId) -> getFunctionCall(method).apply(args, protocol, seqId, subscribScheduler);
+            Processor processor = new Processor() {
+                @Override
+                public Object process(Method method, Object[] args, TProtocol protocol, int seqId) throws Throwable {
+                    return Thrift.this.getFunctionCall(method).apply(args, protocol, seqId, subscribScheduler);
+                }
+            };
             if (interceptors != null && interceptors.length > 0) {
                 for (Interceptor interceptor : interceptors) {
                     processor = new Chain(processor, interceptor);

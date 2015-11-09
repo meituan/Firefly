@@ -1,6 +1,7 @@
 package com.meituan.firefly;
 
 import com.meituan.firefly.testfirefly.TestService;
+import com.meituan.firefly.testthrift.TestService.Iface;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -34,7 +35,7 @@ public class ThriftTest {
         AtomicInteger ai = new AtomicInteger();
         OrderCheckInterceptor interceptor1 = new OrderCheckInterceptor(ai);
         OrderCheckInterceptor interceptor2 = new OrderCheckInterceptor(ai);
-        TTransport transport = new FlushableMemoryBuffer(4096);
+        final TTransport transport = new FlushableMemoryBuffer(4096);
         com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
             @Override
             public TProtocol get() {
@@ -42,7 +43,7 @@ public class ThriftTest {
             }
         }, interceptor1, interceptor2);
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        com.meituan.firefly.testthrift.TestService.Processor<com.meituan.firefly.testthrift.TestService.Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<>(notifyCheck);
+        com.meituan.firefly.testthrift.TestService.Processor<Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<Iface>(notifyCheck);
         testService.notify(100);
         processor.process(new TBinaryProtocol(transport), new TBinaryProtocol(transport));
         Assert.assertTrue(notifyCheck.notified);
@@ -51,8 +52,8 @@ public class ThriftTest {
 
     @Test
     public void testInterceptorAbort() throws Exception {
-        TTransport transport = new FlushableMemoryBuffer(4096);
-        com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
+        final TTransport transport = new FlushableMemoryBuffer(4096);
+        final com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
             @Override
             public TProtocol get() {
                 return new TBinaryProtocol(transport);
@@ -64,7 +65,7 @@ public class ThriftTest {
             }
         });
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        com.meituan.firefly.testthrift.TestService.Processor<com.meituan.firefly.testthrift.TestService.Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<>(notifyCheck);
+        com.meituan.firefly.testthrift.TestService.Processor<Iface> processor = new com.meituan.firefly.testthrift.TestService.Processor<Iface>(notifyCheck);
         testService.notify(100);
         try {
             processor.process(new TBinaryProtocol(transport), new TBinaryProtocol(transport));

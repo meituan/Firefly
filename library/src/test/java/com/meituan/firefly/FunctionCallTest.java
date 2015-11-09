@@ -3,6 +3,7 @@ package com.meituan.firefly;
 import com.meituan.firefly.testthrift.OrderedStruct;
 import com.meituan.firefly.testthrift.TestException;
 import com.meituan.firefly.testthrift.TestService;
+import com.meituan.firefly.testthrift.TestService.Iface;
 import com.meituan.firefly.testthrift.UnionB;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TException;
@@ -13,14 +14,13 @@ import org.apache.thrift.transport.TTransportException;
 import org.assertj.core.api.Assertions;
 import org.junit.Assert;
 import org.junit.Test;
+import rx.Observable;
+import rx.observers.TestSubscriber;
+import rx.schedulers.TestScheduler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import rx.Observable;
-import rx.observers.TestSubscriber;
-import rx.schedulers.TestScheduler;
 
 
 public class FunctionCallTest {
@@ -30,7 +30,7 @@ public class FunctionCallTest {
 
     @Test
     public void shouldReceiveOnewayMethod() throws Exception {
-        TTransport transport = new FlushableMemoryBuffer(4096);
+        final TTransport transport = new FlushableMemoryBuffer(4096);
         com.meituan.firefly.testfirefly.TestService testService = thrift.create(com.meituan.firefly.testfirefly.TestService.class, new Thrift.SimpleTProtocolFactory() {
             @Override
             public TProtocol get() {
@@ -38,7 +38,7 @@ public class FunctionCallTest {
             }
         });
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
+        TestService.Processor<Iface> processor = new TestService.Processor<Iface>(notifyCheck);
         testService.notify(100);
         processor.process(new TBinaryProtocol(transport), new TBinaryProtocol(transport));
         Assert.assertTrue(notifyCheck.notified);
@@ -47,8 +47,8 @@ public class FunctionCallTest {
     @Test
     public void shouldReceiveObserableWithOneway() throws Exception {
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
-        TTransport transport = new FlushableMemoryBuffer(4096) {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(notifyCheck);
+        final TTransport transport = new FlushableMemoryBuffer(4096) {
             boolean flushed = false;
 
             @Override
@@ -78,8 +78,8 @@ public class FunctionCallTest {
     @Test
     public void voidMethodWithoutOneway() throws Exception {
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
-        TTransport transport = new FlushableMemoryBuffer(4096) {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(notifyCheck);
+        final TTransport transport = new FlushableMemoryBuffer(4096) {
             boolean flushed = false;
 
             @Override
@@ -107,8 +107,8 @@ public class FunctionCallTest {
     @Test
     public void voidMethodReceiveObserableWithoutOneway() throws Exception {
         NotifyCheck notifyCheck = new NotifyCheck(100);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(notifyCheck);
-        TTransport transport = new FlushableMemoryBuffer(4096) {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(notifyCheck);
+        final TTransport transport = new FlushableMemoryBuffer(4096) {
             boolean flushed = false;
 
             @Override
@@ -138,7 +138,7 @@ public class FunctionCallTest {
     @Test
     public void shouldReceiveResult() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+        TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
             @Override
             public void notify(int id) throws TException {
 
@@ -172,7 +172,7 @@ public class FunctionCallTest {
 
     @Test
     public void shouldReceiveObserable() throws Exception {
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
             @Override
             public void notify(int id) throws TException {
 
@@ -233,7 +233,7 @@ public class FunctionCallTest {
     @Test(expected = com.meituan.firefly.testfirefly.TestException.class)
     public void shouldReceiveException() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+        TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
             @Override
             public void notify(int id) throws TException {
 
@@ -269,7 +269,7 @@ public class FunctionCallTest {
     @Test(expected = TApplicationException.class)
     public void shouldReceiveApplicationException() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+        TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
             @Override
             public void notify(int id) throws TException {
 
@@ -300,7 +300,7 @@ public class FunctionCallTest {
     @Test
     public void complicatedMethod() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
-        TestService.Processor<TestService.Iface> processor = new TestService.Processor<>(new TestService.Iface() {
+        TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
             @Override
             public void notify(int id) throws TException {
 
