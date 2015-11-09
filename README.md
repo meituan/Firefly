@@ -52,6 +52,11 @@ To compile thrift files:
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
+If you want to generator file with Rx smell ,just put --rx in the last,like this:
+```bash
+$ cd generator
+$ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx'
+```
 
 The generator assumes that thrift files included by the target thrift file are placed in the same dir of the target thrift file. 
 
