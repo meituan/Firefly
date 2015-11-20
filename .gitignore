@@ -1,2 +1,35 @@
 target
 .idea
+# Please see https://github.com/github/gitignore for some nice presets
+
+# Output directories
+build/
+out/
+target/
+
+# Mac OS X files
+.DS_Store
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse files
+.settings
+.classpath
+.project
+
+# Gradle
+.gradle/
+
+# Log directory
+logs/
+
+# vim files
+.*.sw[a-z]
+*.un~
+
+# Java class files
+*.class
