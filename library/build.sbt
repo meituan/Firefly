@@ -28,6 +28,6 @@ javacOptions in (Compile, compile) ++= Seq("-source", "1.7", "-target", "1.7")
 
 licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 
-bintrayPackage := "Firefly"
+bintrayPackage := "com.meituan.firefly:library"
 
 bintrayPackageLabels := Seq("thrift", "android")
