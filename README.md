@@ -52,7 +52,7 @@ To compile thrift files:
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
-If you want to generator file with Rx smell ,just put --rx in the last,like this:
+If you want to generator file with Rx smell, just put --rx in the last,like this:
 
 ```bash
 $ cd generator
@@ -70,20 +70,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.1.4</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.1.4'
+compile 'com.meituan.firefly:library:0.2.0'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.1.4"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.2.0"
 ```
 
 Given the following thrift file for example:
@@ -120,6 +120,9 @@ Make sure that `ProtocolFactory.get()` return a new Protocol for each call, or r
 ## Roadmap
 
 - [x] RxJava support 
+- [ ] Gradle Plugin generates codes automatically
+- [ ] Serializable support
+- [ ] Android Parcelable support
 
 ## License
 
