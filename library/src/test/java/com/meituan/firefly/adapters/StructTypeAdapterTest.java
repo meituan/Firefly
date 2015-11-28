@@ -15,7 +15,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StructTypeAdapterTest {
-    Thrift thrift = new Thrift();
+    Thrift thrift = Thrift.instance;
 
     @Test
     public void shouldReadStruct_thatThriftWrite() throws Exception {
@@ -124,6 +124,7 @@ public class StructTypeAdapterTest {
         mixStructMap.put((short) 1, new com.meituan.firefly.testthrift.MixStruct(1, 3));
         thriftComplicatedStruct.setMixStructMap(mixStructMap);
         thriftComplicatedStruct.setOrderEnum(com.meituan.firefly.testthrift.OrderEnum.Mix);
+        thriftComplicatedStruct.setBin(new byte[]{1, 2, 3});
         thriftComplicatedStruct.write(protocol);
 
         StructTypeAdapterFactory.StructTypeAdapter structTypeAdapter = new StructTypeAdapterFactory.StructTypeAdapter(ComplicatedStruct.class, thrift);
@@ -151,6 +152,7 @@ public class StructTypeAdapterTest {
             }
         });
         assertThat(fireflyComplicatedStruct.orderEnum).isEqualTo(OrderEnum.Mix);
+        assertThat(fireflyComplicatedStruct.bin).isEqualTo(new byte[]{1, 2, 3});
     }
 
     @Test
@@ -181,6 +183,7 @@ public class StructTypeAdapterTest {
         mixStructMap.put((short) 1, mixStruct2);
         fireflyComplicatedStruct.mixStructMap = mixStructMap;
         fireflyComplicatedStruct.orderEnum = OrderEnum.Mix;
+        fireflyComplicatedStruct.bin = new byte[]{1, 2, 3};
         StructTypeAdapterFactory.StructTypeAdapter structTypeAdapter = new StructTypeAdapterFactory.StructTypeAdapter(ComplicatedStruct.class, thrift);
         structTypeAdapter.write(fireflyComplicatedStruct, protocol);
 
@@ -208,5 +211,6 @@ public class StructTypeAdapterTest {
             }
         });
         assertThat(thriftComplicatedStruct.orderEnum).isEqualTo(com.meituan.firefly.testthrift.OrderEnum.Mix);
+        assertThat(thriftComplicatedStruct.bin.array()).isEqualTo(new byte[]{1, 2, 3});
     }
 }

@@ -1,15 +1,24 @@
 package {{package}};
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+{{^isException}}{{#android}}
+import android.os.Parcel;
+import android.os.Parcelable;
+import com.meituan.firefly.android.StructBase;
+{{/android}}{{/isException}}
 import com.meituan.firefly.annotations.*;
 
 {{&doc}}
 {{#isUnion}}
 @Union
 {{/isUnion}}
-public class {{&name}} {{#isException}}extends Exception{{/isException}} {
+public class {{&name}} {{#isException}} extends Exception {{/isException}} {{^isException}}{{#android}} extends StructBase {{/android}}{{^android}} implements Serializable {{/android}}{{/isException}}{
+    {{^isException}}{{#android}}
+    public static final Parcelable.Creator CREATOR = new StructBase.Creator({{&name}}.class);
+    {{/android}}{{/isException}}
 {{#fields}}
     {{> field}}
 {{/fields}}

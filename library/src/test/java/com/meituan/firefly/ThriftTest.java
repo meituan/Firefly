@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThriftTest {
-    Thrift thrift = new Thrift();
+    Thrift thrift = Thrift.instance;
 
     @Test
     public void shouldCreateService() {

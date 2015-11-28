@@ -1,4 +1,4 @@
-namespace java com.meituan.firefly.test
+namespace java com.meituan.firefly.testfirefly
 
 struct OrderedStruct{
     1: required i32 id;
@@ -36,6 +36,7 @@ struct ComplicatedStruct {
     map<i16, OrderedStruct> orderedStructMap;
     map<i16, MixStruct> mixStructMap;
     OrderEnum orderEnum;
+    binary bin;
 }
 
 exception TestException {

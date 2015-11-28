@@ -14,7 +14,7 @@ import scala.collection.mutable.ListBuffer
  * @param defaultNameSpace default namespace if the thrift file does not specify one
  * @param output output dir for generated code
  */
-class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen"), mode: Byte = Compiler.defaultMode) extends ((Document, String) => Seq[File]) {
+class Generator(defaultNameSpace: String = "thrift", output: File = new File("gen"), rxStyle: Boolean = false, androidSupport: Boolean = false) extends ((Document, String) => Seq[File]) {
   val engine = new TemplateEngine()
   engine.resourceLoader = new FileResourceLoader {
     override def resource(uri: String): Option[Resource] = Some(Resource.fromURL(getClass.getResource(uri)))
@@ -49,7 +49,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     implicit val exceptionContext = s"@file $filename"
     val nameSpace = getNameSpace(doc)
     val nameSpaceFolder = getNameSpaceFolder(nameSpace)
-    val baseMap = Map[String, Any]("package" -> nameSpace)
+    val baseMap = Map[String, Any]("package" -> nameSpace, "android" -> androidSupport)
     val listBuf = ListBuffer[File]()
 
     val consts = doc.defs.collect { case x: Const => x }
@@ -101,13 +101,17 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     )
   }
 
-  def convertType(fieldType: Type, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
-    fieldType match {
+  def convertActualType(actualType: Type, actualDocument: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
+    actualType match {
       case OnewayVoid | Void => "void"
       case t: BaseType => convertBaseType(t)
-      case t: ContainerType => convertContainerType(t, contextDoc, targetDoc)
-      case t: IdentifierType => convertIdentifierType(t, contextDoc, targetDoc)
+      case t: ContainerType => convertContainerType(t, actualDocument, targetDoc)
+      case IdentifierType(id: SimpleId) => if (actualDocument == targetDoc) id.name else getNameSpace(actualDocument) + "." + id.name
     }
+  }
+  def convertType(fieldType: Type, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
+    val (actualType, actualDocument) = findActualType(fieldType, contextDoc)
+    convertActualType(actualType, actualDocument, targetDoc)
   }
 
   def convertType(fieldType: Type, doc: Document)(implicit exceptionContext: String): String = convertType(fieldType, doc, doc)
@@ -140,19 +144,19 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }
   }
 
-  def convertIdentifierType(idType: IdentifierType, contextDoc: Document, targetDoc: Document)(implicit exceptionContext: String): String = {
-
-    def findNamedType(name: String, contextDoc: Document, targetDoc: Document) = {
-      contextDoc.defs.collectFirst { case struct: StructLike if struct.name.name == name => if (contextDoc == targetDoc) name else getNameSpace(contextDoc) + "." + name }
-        .orElse(contextDoc.defs.collectFirst { case enum: Enum if enum.name.name == name => if (contextDoc == targetDoc) name else getNameSpace(contextDoc) + "." + name })
-        .orElse(contextDoc.defs.collectFirst { case typedef: Typedef if typedef.name.name == name => convertType(typedef.definitionType, contextDoc, targetDoc) })
-        .getOrElse(throw new StructNotFoundException(idType.id.fullName))
+  def findActualType(fieldType: Type, document: Document)(implicit exceptionContext: String): (Type, Document) = {
+    def find(name: String, document: Document): (Type, Document) = {
+      document.defs.collectFirst { case struct: StructLike if struct.name.name == name => (IdentifierType(SimpleId(name)), document) }
+        .orElse(document.defs.collectFirst { case enum: Enum if enum.name.name == name => (IdentifierType(SimpleId(name)), document) })
+        .orElse(document.defs.collectFirst { case typedef: Typedef if typedef.name.name == name => findActualType(typedef.definitionType, document) })
+        .getOrElse(throw new TypeNotFoundException(getNameSpace(document) + "." + name))
     }
-    idType.id match {
-      case id: SimpleId => findNamedType(id.name, contextDoc, targetDoc)
-      case id: QualifiedId =>
-        val includeDocument: Document = getInclude(contextDoc, id.qualifier).document
-        findNamedType(id.name, includeDocument, targetDoc)
+    fieldType match {
+      case IdentifierType(id: SimpleId) => find(id.name, document)
+      case IdentifierType(id: QualifiedId) =>
+        val includeDocument: Document = getInclude(document, id.qualifier).document
+        find(id.name, includeDocument)
+      case _ => (fieldType, document)
     }
   }
 
@@ -164,6 +168,13 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
   }
 
   def convertConstValue(fieldType: Type, value: ConstValue, doc: Document)(implicit exceptionContext: String = ""): String = {
+    def definition(name: String, document: Document) = document.defs.collectFirst {
+      case d: Struct if d.name.name equals name => d
+      case d: Enum if d.name.name equals name => d
+      case d: Union if d.name.name equals name => d
+    }.getOrElse(throw new TypeNotFoundException(getNameSpace(document) + "." + name))
+
+
     value match {
       case v: Literal =>
         fieldType match {
@@ -176,11 +187,14 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "bool")
         }
       case v: IntConstant =>
-        fieldType match {
+        val (actualType, actualDocument) = findActualType(fieldType, doc)
+        actualType match {
           case TI16 => "(short) " + v.value.toString
           case TI32 => v.value.toString
           case TI64 => v.value.toString + "l"
           case TDouble => "(double) " + v.value.toString
+          case IdentifierType(id: SimpleId) if definition(id.name, actualDocument).isInstanceOf[Enum] =>
+            convertActualType(actualType, actualDocument, doc) + s".findByValue(${v.value})"
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "int")
         }
       case v: DoubleConstant =>
@@ -188,7 +202,14 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
           case TDouble => v.value.toString
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "double")
         }
-      case v: IdConstant => convertIdConstant(v, doc)
+      case IdConstant(id: SimpleId) => "Consts." + id.name
+      case IdConstant(id: QualifiedId) =>
+        val (actualType, actualDocument) = findActualType(fieldType, doc)
+        actualType match {
+          case IdentifierType(typeId: SimpleId) if definition(typeId.name, actualDocument).isInstanceOf[Enum] =>
+            convertActualType(actualType, actualDocument, doc) + "." + id.name
+          case _ => getNameSpace(getInclude(doc, id.qualifier).document) + ".Consts." + id.name;
+        }
       case v: ConstList =>
         fieldType match {
           case ListType(tp) => "java.util.Arrays.asList(" + v.elems.map(convertConstValue(tp, _, doc)).mkString(", ") + ")"
@@ -202,13 +223,6 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
             "com.meituan.firefly.util.Maps.asMap(" + kvs.mkString(", ") + ")"
           case _ => throw new ValueTypeNotMatchException(fieldType.toString, "map")
         }
-    }
-  }
-
-  def convertIdConstant(value: IdConstant, doc: Document)(implicit exceptionContext: String): String = {
-    value.id match {
-      case id: SimpleId => "Consts." + id.name
-      case id: QualifiedId => getNameSpace(getInclude(doc, id.qualifier).document) + ".Consts." + id.name;
     }
   }
 
@@ -301,9 +315,9 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
     }.getOrElse(Seq()),
     "funcType" -> (
       if (OnewayVoid == function.functionType) {
-        if (Compiler.rxMode != mode) "void" else "Observable<Void>"
+        if (rxStyle) "Observable<Void>" else "void"
       } else {
-        if (Compiler.rxMode == mode) {
+        if (rxStyle) {
           val retutrnType = convertType(function.functionType, document)
           if ("void" == retutrnType)
             "Observable<Void>"
