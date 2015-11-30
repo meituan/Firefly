@@ -52,26 +52,55 @@ To compile thrift files:
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
-If you want to generate files with Rx smell, just put --rx in the last, like this:
-
-```bash
-$ cd generator
-$ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx'
-```
-Also, we can generate Android Parcelable classes,like this:
-
-```bash
-$ cd generator
-$ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --android'
-```
-
-What's more, you can use both of them in a single order, for example:
+If you want to generate files with Rx smell or supports Android's `Parcelable`, just put `--rx` or `--android` in the last, like this:
 
 ```bash
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx --android'
 ```
 
+### Gradle plugin
+If you are using Gradle, you may use the Gradle Plugin:
+
+```groovy
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.meituan.firefly:gradle-plugin:0.2.1'
+	}
+}
+apply plugin: 'com.meituan.firefly'
+```
+you can change the input diretory and  output diretory, like this:
+
+```groovy
+apply plugin: 'com.meituan.firefly'
+apply plugin: 'com.android.library'
+firefly {
+    inputDir file('./src/main/idl')
+    outputDir file('./build/generated/source/firefly')
+}
+```
+* inputDir's default value is ./src/main/idl
+* outputDir's default value is ./build/generated/source/firefly
+* rxStyle's default value is false
+* android's default value is false
+
+Please notice that, the plugin must be declared before plugin `com.android.library`, `com.android.application` or `java`.
+Pay attention to the arguments `rxStyle` and `android`. If you change them, all the output file will be re-generated.
+
+If you want to generate code with rx smell or support android's Parcelable: 
+
+```groovy
+apply plugin: 'com.meituan.firefly'
+apply plugin: 'java'
+firefly {
+    rxStyle true
+    android true
+}
+```
 
 The generator assumes that thrift files included by the target thrift file are placed in the same dir of the target thrift file. 
 
@@ -98,57 +127,6 @@ or sbt:
 
 ```scala
 libraryDependencies += "com.meituan.firefly" % "library" % "0.2.1"
-```
-
-or Gradle Plugin:
-
-```groovy
-apply plugin: 'com.meituan.firefly'
-```
-
-
-you can change the input diretory , output diretory and output files mode ,like this 
-
-```groovy
-apply plugin: 'com.meituan.firefly'
-apply plugin: 'com.android.library'
-firefly {
-    inputDir file('./src/main/idl')
-    outputDir file('./build/generated/source/firefly')
-}
-```
-inputDir's  default value is ./src/main/idl
-
-outputDir's  default value is ./build/generated/source/firefly
-
-rxStyle's  default value is false
-
-please notice that,the plugin must be declared before plugin com.android.library , com.android.application , java (this is plugin java ).
-Pay attention to the argument 'mode',if you change this(default value is blank--''),all the output file will be re-generated
-.
- Maybe overwirte file someone else generates, you'd better change the input diretory and output diretory,like this:
-
-```groovy
-apply plugin: 'com.meituan.firefly'
-apply plugin: 'com.android.library'
-firefly {
-    inputDir file('./src/main/idl_rx')
-    outputDir file('./build/generated/source/firefly_rx')
-    rxStyle true
-}
-```
-
-we can generate Android Parcelable classes,like this:
-
-```groovy
-apply plugin: 'com.meituan.firefly'
-apply plugin: 'java'
-firefly {
-    inputDir file('./src/main/idl_rx')
-    outputDir file('./build/generated/source/firefly_rx')
-    rxStyle true
-    android true
-}
 ```
 
 Given the following thrift file for example:

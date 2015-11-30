@@ -1,24 +1,74 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-
 buildscript {
     repositories {
         jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:1.5.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
 
-allprojects {
-    repositories {
-        mavenLocal()
-        jcenter()
+group = 'com.meituan.firefly'
+version = '0.2.1'
+description = 'Runtime library for firefly generated codes, provides Superclass supports Parcelable for all generated struct classes.'
+
+repositories {
+    mavenLocal()
+    jcenter()
+    mavenCentral()
+}
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        minSdkVersion 9
+        versionCode 1
+        versionName "0.2.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+dependencies {
+    compile 'com.meituan.firefly:library:0.2.1'
+    testCompile 'junit:junit:4.12'
+    testCompile "org.robolectric:robolectric:3.0"
+    testCompile "org.slf4j:slf4j-simple:1.7.12"
 }
+
+def isSnapshot() {
+    return version.endsWith("SNAPSHOT")
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: isSnapshot() ? mavenSnapshotRepo : mavenReleaseRepo) {
+                authentication(userName: mavenUsername, password: mavenPassword)
+            }
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayKey
+    pkg {
+        name = 'com.meituan.firefly:lib-android'
+    }
+}
+
+
+

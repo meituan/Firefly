@@ -1,0 +1,78 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+    }
+}
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+repositories {
+	mavenLocal()
+    jcenter()
+    mavenCentral()
+}
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+    testCompile 'junit:junit:4.12'
+    compile 'com.meituan.firefly:generator_2.11:0.2.1'
+}
+
+group = 'com.meituan.firefly'
+version = '0.2.1'
+description = 'Gradle plugin generates thrift idls to codes using firefly generator.'
+
+task docJar(type: Jar, dependsOn: javadoc) {
+    from tasks.javadoc.destinationDir
+    classifier 'doc'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier 'sources'
+}
+
+def isSnapshot() {
+    return version.endsWith("SNAPSHOT")
+}
+
+publishing {
+    repositories {
+        maven {
+            if (isSnapshot()) {
+                url mavenSnapshotRepo
+            } else {
+                url mavenReleaseRepo
+            }
+            credentials {
+                username = mavenUsername
+                password = mavenPassword
+            }
+        }
+    }
+
+    publications {
+        plugin(MavenPublication) {
+            from components.java
+            artifactId = 'gradle-plugin'
+            artifact docJar
+            artifact sourceJar
+            pom.withXml {
+                asNode().appendNode('description', '${description}')
+            }
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayKey
+    publications = ['plugin']
+    pkg {
+        name = 'com.meituan.firefly:gradle-plugin'
+    }
+}
