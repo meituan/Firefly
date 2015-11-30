@@ -21,3 +21,6 @@ licenses += ("Apache-2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
 bintrayPackage := "com.meituan.firefly:generator_2.11"
 
 bintrayPackageLabels := Seq("thrift", "android")
+
+javacOptions in (Compile, compile) ++= Seq("-source", "1.7", "-target", "1.7")
+

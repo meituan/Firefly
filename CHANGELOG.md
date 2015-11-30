@@ -2,6 +2,12 @@
 
 -------
 
+## 0.2.1
+* Support Serializable.
+* Support Android's Parcelable.
+* Bugfix: binary field type was generated to byte array but processed as ByteBuffer.
+* Bugfix: can not specify a default value to enum type field.
+
 ## 0.2.0
 
 * RxJava support. 

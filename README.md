@@ -52,11 +52,54 @@ To compile thrift files:
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
-If you want to generate files with Rx smell, just put --rx in the last, like this:
+If you want to generate files with Rx smell or supports Android's `Parcelable`, just put `--rx` or `--android` in the last, like this:
 
 ```bash
 $ cd generator
-$ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx'
+$ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx --android'
+```
+
+### Gradle plugin
+If you are using Gradle, you may use the Gradle Plugin:
+
+```groovy
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.meituan.firefly:gradle-plugin:0.2.1'
+	}
+}
+apply plugin: 'com.meituan.firefly'
+```
+you can change the input diretory and  output diretory, like this:
+
+```groovy
+apply plugin: 'com.meituan.firefly'
+apply plugin: 'com.android.library'
+firefly {
+    inputDir file('./src/main/idl')
+    outputDir file('./build/generated/source/firefly')
+}
+```
+* inputDir's default value is ./src/main/idl
+* outputDir's default value is ./build/generated/source/firefly
+* rxStyle's default value is false
+* android's default value is false
+
+Please notice that, the plugin must be declared before plugin `com.android.library`, `com.android.application` or `java`.
+Pay attention to the arguments `rxStyle` and `android`. If you change them, all the output file will be re-generated.
+
+If you want to generate code with rx smell or support android's Parcelable: 
+
+```groovy
+apply plugin: 'com.meituan.firefly'
+apply plugin: 'java'
+firefly {
+    rxStyle true
+    android true
+}
 ```
 
 The generator assumes that thrift files included by the target thrift file are placed in the same dir of the target thrift file. 
@@ -70,20 +113,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.2.0'
+compile 'com.meituan.firefly:library:0.2.1'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.2.0"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.2.1"
 ```
 
 Given the following thrift file for example:
@@ -120,9 +163,9 @@ Make sure that `ProtocolFactory.get()` return a new Protocol for each call, or r
 ## Roadmap
 
 - [x] RxJava support 
-- [ ] Gradle Plugin generates codes automatically
-- [ ] Serializable support
-- [ ] Android Parcelable support
+- [x] Gradle Plugin generates codes automatically
+- [x] Serializable support
+- [x] Android Parcelable support
 
 ## License
 
