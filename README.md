@@ -52,7 +52,7 @@ To compile thrift files:
 $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...]'
 ```
-If you want to generator file with Rx smell, just put --rx in the last,like this:
+If you want to generate files with Rx smell, just put --rx in the last, like this:
 
 ```bash
 $ cd generator

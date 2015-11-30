@@ -25,7 +25,7 @@ import java.util.List;
 
 public class FunctionCallTest {
 
-    Thrift thrift = new Thrift();
+    Thrift thrift = Thrift.instance;
 
 
     @Test

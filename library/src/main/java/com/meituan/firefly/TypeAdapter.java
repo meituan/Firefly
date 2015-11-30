@@ -163,6 +163,20 @@ public interface TypeAdapter<T> {
             return TType.STRING;
         }
     };
+    TypeAdapter<byte[]> BYTE_ARRAY_TYPE_ADAPTER = new TypeAdapter<byte[]>() {
+        @Override
+        public void write(byte[] bytes, TProtocol protocol) throws TException {
+            protocol.writeBinary(ByteBuffer.wrap(bytes));
+        }
 
+        @Override
+        public byte[] read(TProtocol protocol) throws TException {
+            return protocol.readBinary().array();
+        }
 
+        @Override
+        public byte getTType() {
+            return TType.STRING;
+        }
+    };
 }

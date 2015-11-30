@@ -8,6 +8,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
                 this.adapter = adapter;
             }
 
-            TField getTTField(){
+            TField getTTField() {
                 return new TField(field.getName(), adapter.getTType(), id);
             }
         }
@@ -53,6 +54,9 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
             fieldAdapterList = new ArrayList<>(fields.length);
             tStruct = new TStruct(rawType.getSimpleName());
             for (Field field : fields) {
+                if (Modifier.isStatic(field.getModifiers()) || Modifier.isTransient(field.getModifiers())) {
+                    continue;
+                }
                 com.meituan.firefly.annotations.Field fieldAnnotation = field.getAnnotation(com.meituan.firefly.annotations.Field.class);
                 if (fieldAnnotation == null) {
                     throw new IllegalArgumentException("field " + field.getName() + " of struct " + rawType.getSimpleName() + " should be annotated with @Field");
