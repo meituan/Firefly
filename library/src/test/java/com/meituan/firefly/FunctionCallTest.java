@@ -150,6 +150,11 @@ public class FunctionCallTest {
             }
 
             @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return null;
+            }
+
+            @Override
             public List<UnionB> getList(List<Short> ids) throws TException {
                 return null;
             }
@@ -193,6 +198,11 @@ public class FunctionCallTest {
 
             }
 
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return null;
+            }
+
         });
         TTransport transport = new FlushableMemoryBuffer(4096) {
             boolean flushed = false;
@@ -229,7 +239,132 @@ public class FunctionCallTest {
         Assert.assertEquals((Integer) 1, u.os.id);
     }
 
+    @Test
+    public void emptyArgMethod() throws Exception {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
+            @Override
+            public void notify(int id) throws TException {
 
+            }
+
+            @Override
+            public UnionB get(int id) throws TestException, TException {
+                return new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
+            }
+
+            @Override
+            public List<UnionB> getList(List<Short> ids) throws TException {
+                return null;
+            }
+
+            @Override
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
+            }
+
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
+            }
+
+        });
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        TestScheduler testScheduler = new TestScheduler();
+        FunctionCall functionCall = new FunctionCall(com.meituan.firefly.rx_testfirefly.TestService.class.getMethod("emptyArgMethod", null), thrift);
+        Observable<com.meituan.firefly.rx_testfirefly.UnionB> observable;
+        try {
+            observable = (Observable<com.meituan.firefly.rx_testfirefly.UnionB>) functionCall.apply(null, new TBinaryProtocol(transport), 1, testScheduler);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("return type of method is not obserable !");
+        }
+        Assert.assertNotNull(observable);
+        observable.subscribeOn(testScheduler);
+        observable.observeOn(testScheduler);
+        TestSubscriber<com.meituan.firefly.rx_testfirefly.UnionB> testSubscriber = new TestSubscriber();
+        observable.subscribe(testSubscriber);
+        testScheduler.triggerActions();
+        Assert.assertEquals(1, testSubscriber.getOnNextEvents().size());
+        com.meituan.firefly.rx_testfirefly.UnionB u = testSubscriber.getOnNextEvents().get(0);
+        Assert.assertNotNull(u);
+        Assert.assertEquals((Integer) 1, u.os.id);
+    }
+    @Test
+    public void emptyArgMethodReceiveObserable() throws Exception {
+        final TestService.Processor<Iface> processor = new TestService.Processor<Iface>(new Iface() {
+            @Override
+            public void notify(int id) throws TException {
+
+            }
+
+            @Override
+            public UnionB get(int id) throws TestException, TException {
+                return null;
+            }
+
+            @Override
+            public List<UnionB> getList(List<Short> ids) throws TException {
+                return null;
+            }
+
+            @Override
+            public void notifyWithoutOneway(int id) throws TestException, TException {
+
+            }
+
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return  new UnionB(UnionB._Fields.OS, new com.meituan.firefly.testthrift.OrderedStruct(1));
+            }
+
+        });
+        TTransport transport = new FlushableMemoryBuffer(4096) {
+            boolean flushed = false;
+
+            @Override
+            public void flush() throws TTransportException {
+                if (!flushed) {
+                    flushed = true;
+                    try {
+                        processor.process(new TBinaryProtocol(this), new TBinaryProtocol(this));
+                    } catch (TException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        };
+        TestScheduler testScheduler = new TestScheduler();
+        FunctionCall functionCall = new FunctionCall(com.meituan.firefly.rx_testfirefly.TestService.class.getMethod("emptyArgMethod", null), thrift);
+        Observable<com.meituan.firefly.rx_testfirefly.UnionB> observable;
+        try {
+            observable = (Observable<com.meituan.firefly.rx_testfirefly.UnionB>) functionCall.apply(null, new TBinaryProtocol(transport), 1, testScheduler);
+        } catch (ClassCastException e) {
+            throw new ClassCastException("return type of method is not obserable !");
+        }
+        Assert.assertNotNull(observable);
+        observable.subscribeOn(testScheduler);
+        observable.observeOn(testScheduler);
+        TestSubscriber<com.meituan.firefly.rx_testfirefly.UnionB> testSubscriber = new TestSubscriber();
+        observable.subscribe(testSubscriber);
+        testScheduler.triggerActions();
+        Assert.assertEquals(1, testSubscriber.getOnNextEvents().size());
+        com.meituan.firefly.rx_testfirefly.UnionB u = testSubscriber.getOnNextEvents().get(0);
+        Assert.assertNotNull(u);
+        Assert.assertEquals((Integer) 1, u.os.id);
+    }
     @Test(expected = com.meituan.firefly.testfirefly.TestException.class)
     public void shouldReceiveException() throws Exception {
         TTransport transport = new FlushableMemoryBuffer(4096);
@@ -252,6 +387,11 @@ public class FunctionCallTest {
             @Override
             public void notifyWithoutOneway(int id) throws TestException, TException {
 
+            }
+
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return null;
             }
 
         });
@@ -290,6 +430,11 @@ public class FunctionCallTest {
 
             }
 
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return null;
+            }
+
         });
         FunctionCall functionCall = new FunctionCall(com.meituan.firefly.testfirefly.TestService.class.getMethod("get", Integer.class), thrift);
         functionCall.send(new Object[]{1}, new TBinaryProtocol(transport), 1);
@@ -323,6 +468,11 @@ public class FunctionCallTest {
             @Override
             public void notifyWithoutOneway(int id) throws TestException, TException {
 
+            }
+
+            @Override
+            public UnionB emptyArgMethod() throws TestException, TException {
+                return null;
             }
 
         });

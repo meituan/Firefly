@@ -37,5 +37,9 @@ class NotifyCheck implements com.meituan.firefly.testthrift.TestService.Iface {
             notified = true;
         }
     }
+    @Override
+    public UnionB emptyArgMethod() throws TestException, TException {
+        return null;
+    }
 
 }

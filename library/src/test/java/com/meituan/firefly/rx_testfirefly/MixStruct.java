@@ -12,6 +12,6 @@ public class MixStruct implements Serializable {
     @Field(id = 1, required = true, name = "id")
     public Integer id;
     
-    @Field(id = -1, required = true, name = "uid")
+    @Field(id = 2, required = true, name = "uid")
     public Integer uid;
 }
