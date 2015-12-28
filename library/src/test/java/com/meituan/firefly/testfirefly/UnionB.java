@@ -10,12 +10,12 @@ import com.meituan.firefly.annotations.*;
 @Union
 public class UnionB implements Serializable {
         
-    @Field(id = -1, required = false, name = "os")
+    @Field(id = 1, required = false, name = "os")
     public OrderedStruct os;
     
-    @Field(id = -2, required = false, name = "uos")
+    @Field(id = 2, required = false, name = "uos")
     public UnorderedStruct uos;
     
-    @Field(id = -3, required = false, name = "mos")
+    @Field(id = 3, required = false, name = "mos")
     public MixStruct mos;
 }

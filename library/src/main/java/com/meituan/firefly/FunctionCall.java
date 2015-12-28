@@ -121,7 +121,6 @@ class FunctionCall {
                 return observable.subscribeOn(subscribScheduler);
             else
                 return observable;
-
         }
         return sendAndRecv(args, protocol, seqid);
     }
@@ -137,17 +136,20 @@ class FunctionCall {
     void send(Object[] args, TProtocol protocol, int seqid) throws TException {
         protocol.writeMessageBegin(new TMessage(methodName, TMessageType.CALL, seqid));
         protocol.writeStructBegin(argsStruct);
-        for (int i = 0, n = args.length; i < n; i++) {
-            FieldSpec fieldSpec = requestTypeList.get(i);
-            Object value = args[i];
-            if (value == null) {
-                if (fieldSpec.required) {
-                    throw new TProtocolException("Required field '" + fieldSpec.name + "' was not present! Struct: " + argsStruct.name);
+        //method with no parameters
+        if (null != args) {
+            for (int i = 0, n = args.length; i < n; i++) {
+                FieldSpec fieldSpec = requestTypeList.get(i);
+                Object value = args[i];
+                if (value == null) {
+                    if (fieldSpec.required) {
+                        throw new TProtocolException("Required field '" + fieldSpec.name + "' was not present! Struct: " + argsStruct.name);
+                    }
+                } else {
+                    protocol.writeFieldBegin(fieldSpec.tField);
+                    fieldSpec.typeAdapter.write(value, protocol);
+                    protocol.writeFieldEnd();
                 }
-            } else {
-                protocol.writeFieldBegin(fieldSpec.tField);
-                fieldSpec.typeAdapter.write(value, protocol);
-                protocol.writeFieldEnd();
             }
         }
         protocol.writeFieldStop();

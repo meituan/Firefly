@@ -9,6 +9,6 @@ import com.meituan.firefly.annotations.*;
 
 public class UnorderedStruct implements Serializable {
         
-    @Field(id = -1, required = true, name = "id")
+    @Field(id = 1, required = true, name = "id")
     public Integer id;
 }
