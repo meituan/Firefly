@@ -16,7 +16,7 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 group = 'com.meituan.firefly'
-version = '0.2.1'
+version = '0.2.2'
 description = 'Runtime library for firefly generated codes, provides Superclass supports Parcelable for all generated struct classes.'
 
 repositories {
@@ -31,7 +31,7 @@ android {
     defaultConfig {
         minSdkVersion 9
         versionCode 1
-        versionName "0.2.0"
+        versionName "0.2.2"
     }
     buildTypes {
         release {
@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-    compile 'com.meituan.firefly:library:0.2.1'
+    compile 'com.meituan.firefly:library:0.2.2'
     testCompile 'junit:junit:4.12'
     testCompile "org.robolectric:robolectric:3.0"
     testCompile "org.slf4j:slf4j-simple:1.7.12"
@@ -65,8 +65,17 @@ uploadArchives {
 bintray {
     user = bintrayUser
     key = bintrayKey
+    configurations = ['archives']
     pkg {
+        repo = 'maven'
         name = 'com.meituan.firefly:lib-android'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/meituan/Firefly.git'
+        publish = true
+        version {
+            name = '0.2.2'
+        }
     }
 }
 

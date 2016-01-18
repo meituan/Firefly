@@ -23,7 +23,7 @@ dependencies {
 }
 
 group = 'com.meituan.firefly'
-version = '0.2.1'
+version = '0.2.2'
 description = 'Gradle plugin generates thrift idls to codes using firefly generator.'
 
 task docJar(type: Jar, dependsOn: javadoc) {
@@ -73,6 +73,14 @@ bintray {
     key = bintrayKey
     publications = ['plugin']
     pkg {
+        repo = 'maven'
         name = 'com.meituan.firefly:gradle-plugin'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/meituan/Firefly.git'
+        publish = true
+        version {
+            name = '0.2.2'
+        }
     }
 }

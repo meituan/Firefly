@@ -2,7 +2,7 @@ organization := "com.meituan.firefly"
 
 name := "generator"
 
-version := "0.2.1"
+version := "0.2.2"
 
 scalaVersion := "2.11.6"
 
@@ -23,4 +23,3 @@ bintrayPackage := "com.meituan.firefly:generator_2.11"
 bintrayPackageLabels := Seq("thrift", "android")
 
 javacOptions in (Compile, compile) ++= Seq("-source", "1.7", "-target", "1.7")
-

@@ -59,6 +59,8 @@ $ cd generator
 $ sbt 'run [--output <output-dir>] <thrift-file1> [<thrift-file2> ...] --rx --android'
 ```
 
+If you generate codes with `--android`, your project should dependents on `com.meituan.firefly:lib-android` instead of `com.meituan.firefly:library`.
+
 ### Gradle plugin
 If you are using Gradle, you may use the Gradle Plugin:
 
@@ -68,7 +70,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.meituan.firefly:gradle-plugin:0.2.1'
+        classpath 'com.meituan.firefly:gradle-plugin:0.2.2'
 	}
 }
 apply plugin: 'com.meituan.firefly'
@@ -113,20 +115,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.2.1'
+compile 'com.meituan.firefly:library:0.2.2'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.2.1"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.2.2"
 ```
 
 Given the following thrift file for example:
@@ -143,10 +145,9 @@ It generates an interface named `GreetingService`.
 Use of generated code:
 
 ```Java
-Thrift thrift = new Thrift();
 final OkHttpClient okhttpClient = new OkHttpClient();
  
-GreetingService greetingService = thrift.create(GreetingService.class, new SimpleProtocolFactory(){
+GreetingService greetingService = Thrift.instance.create(GreetingService.class, new SimpleProtocolFactory(){
     @Override
     public TProtocol get() {
         return new TBinaryProtocol(new OkhttpTransport(YOUR_SERVICE_URL, okhttpClient));
@@ -156,7 +157,6 @@ GreetingService greetingService = thrift.create(GreetingService.class, new Simpl
 String greeting = greetingService.greet("Han meimei");
 ```
 
-The `Thrift` object caches services that it creates, keeping it as an singleton can improve performance.
 
 Make sure that `ProtocolFactory.get()` return a new Protocol for each call, or return a same thread-safe Protocol for every call.
 
