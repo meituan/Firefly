@@ -10,8 +10,8 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
 class FireflyTask extends DefaultTask {
 
-    File inputDir = new File('./src/main/idl')
-    File outputDir = new File('./build/generated/source/firefly')
+    File inputDir = new File('${project.buildDir}/src/main/idl')
+    File outputDir = new File('${project.buildDir}/build/generated/source/firefly')
     boolean rxStyle = false
     boolean android = false
 
@@ -32,7 +32,7 @@ class FireflyTask extends DefaultTask {
     static void main(args) {
 
         println 'begin'
-        def array = ['./src/main/idl/PoiComment.thrift', '--output', '/Users/zhangmeng/Desktop/common/', '--rx'] as String[];
+        def array = ['${project.buildDir}/src/main/idl/PoiComment.thrift', '--output', '/Users/zhangmeng/Desktop/common/', '--rx'] as String[];
         Main$.MODULE$.main(array);
         println 'finish'
 

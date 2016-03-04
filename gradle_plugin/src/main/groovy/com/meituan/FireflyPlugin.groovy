@@ -26,7 +26,7 @@ class FireflyPlugin implements Plugin<Project> {
             } else {
                 throw new Exception('firefly plugin must used in projects which  use com.android.library , android or java plugin ')
             }
-            FireflyTask fireflyTask = target.tasks.create("generate", FireflyTask)
+            FireflyTask fireflyTask = target.tasks.create("thrift2java", FireflyTask)
             def Task dependentTask = target.tasks.findByName(DEPENDENCY_TASK_NAME)
             if (dependentTask != null) {
                 fireflyTask.dependsOn dependentTask.taskDependencies.getDependencies(dependentTask)
