@@ -2,6 +2,11 @@
 
 -------
 
+## 0.2.3
+* Bugfix: If enum value is > 1k, comma is added in the integer in the generated Java file
+* Bugfix: Single quotation mark is not accepted during Java files generation
+* Gradle plugin use projectDir instead relative path
+
 ## 0.2.2
 * Provide a gradle plugin that generates code from thrift files automatically.
 * Support Serializable.

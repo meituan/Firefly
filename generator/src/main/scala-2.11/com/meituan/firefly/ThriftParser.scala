@@ -171,7 +171,7 @@ class ThriftParser(dir: File) extends RegexParsers {
   // use a single regex to match string quote-to-quote, so that whitespace parser doesn"t
   // get executed inside the quotes
   lazy val doubleQuotedString = """(")(\.|[^\"])*(")""".r
-  lazy val singleQuotedString = """"(\.|[^\"])*"""".r
+  lazy val singleQuotedString = """'(\\.|[^\\'])*'""".r
 
   lazy val literal = (doubleQuotedString | singleQuotedString) ^^ {
     // strip off quotes

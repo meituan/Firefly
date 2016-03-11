@@ -19,11 +19,11 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     testCompile 'junit:junit:4.12'
-    compile 'com.meituan.firefly:generator_2.11:0.2.1'
+    compile 'com.meituan.firefly:generator_2.11:0.2.3'
 }
 
 group = 'com.meituan.firefly'
-version = '0.2.2'
+version = '0.2.3'
 description = 'Gradle plugin generates thrift idls to codes using firefly generator.'
 
 task docJar(type: Jar, dependsOn: javadoc) {
@@ -80,7 +80,7 @@ bintray {
         vcsUrl = 'https://github.com/meituan/Firefly.git'
         publish = true
         version {
-            name = '0.2.2'
+            name = '0.2.3'
         }
     }
 }

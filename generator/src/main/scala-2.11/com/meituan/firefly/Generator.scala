@@ -269,7 +269,7 @@ class Generator(defaultNameSpace: String = "thrift", output: File = new File("ge
       else {
         val lastElem = enum.elems.last
         (for (elem <- enum.elems.dropRight(1)) yield Map("name" -> elem._1.name, "id" -> elem._2)) :+
-          Map("name" -> lastElem._1.name, "id" -> lastElem._2, "last" -> true)
+          Map("name" -> lastElem._1.name, "id" -> lastElem._2.toString, "last" -> true)
       }))
   }
 

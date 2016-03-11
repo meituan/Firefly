@@ -9,9 +9,9 @@ import org.gradle.api.tasks.OutputDirectory
  */
 class FireflyArgs {
     @InputDirectory
-    File inputDir = new File('${project.buildDir}/src/main/idl')
+    File inputDir = new File('${project.projectDir}/src/main/idl')
     @OutputDirectory
-    File outputDir = new File('${project.buildDir}/build/generated/source/firefly')
+    File outputDir = new File('${project.buildDir}/generated/source/firefly')
     @Input
     boolean rxStyle = false
     @Input

@@ -70,7 +70,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.meituan.firefly:gradle-plugin:0.2.2'
+        classpath 'com.meituan.firefly:gradle-plugin:0.2.3'
 	}
 }
 apply plugin: 'com.meituan.firefly'
@@ -81,12 +81,12 @@ you can change the input diretory and  output diretory, like this:
 apply plugin: 'com.meituan.firefly'
 apply plugin: 'com.android.library'
 firefly {
-    inputDir file('./src/main/idl')
-    outputDir file('./build/generated/source/firefly')
+    inputDir file('${project.projectDir}/src/main/idl')
+    outputDir file('${project.buildDir}/generated/source/firefly')
 }
 ```
-* inputDir's default value is ./src/main/idl
-* outputDir's default value is ./build/generated/source/firefly
+* inputDir's default value is '${project.projectDir}/src/main/idl'
+* outputDir's default value is '${project.buildDir}/generated/source/firefly'
 * rxStyle's default value is false
 * android's default value is false
 
@@ -115,20 +115,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.2.2</version>
+  <version>0.2.3</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.2.2'
+compile 'com.meituan.firefly:library:0.2.3'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.2.2"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.2.3"
 ```
 
 Given the following thrift file for example:
