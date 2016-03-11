@@ -70,7 +70,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.meituan.firefly:gradle-plugin:0.2.3'
+        classpath 'com.meituan.firefly:gradle-plugin:0.2.4'
 	}
 }
 apply plugin: 'com.meituan.firefly'
@@ -115,20 +115,20 @@ Include via Maven:
 <dependency>
   <groupId>com.meituan.firefly</groupId>
   <artifactId>library</artifactId>
-  <version>0.2.3</version>
+  <version>0.2.4</version>
 </dependency>
 ```
 
 or Gradle:
 
 ```groovy
-compile 'com.meituan.firefly:library:0.2.3'
+compile 'com.meituan.firefly:library:0.2.4'
 ```
 
 or sbt:
 
 ```scala
-libraryDependencies += "com.meituan.firefly" % "library" % "0.2.3"
+libraryDependencies += "com.meituan.firefly" % "library" % "0.2.4"
 ```
 
 Given the following thrift file for example:

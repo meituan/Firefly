@@ -10,8 +10,8 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 
 class FireflyTask extends DefaultTask {
 
-    File inputDir = new File('${project.projectDir}/src/main/idl')
-    File outputDir = new File('${project.buildDir}/generated/source/firefly')
+    File inputDir = new File("${project.projectDir}/src/main/idl")
+    File outputDir = new File("${project.buildDir}/generated/source/firefly")
     boolean rxStyle = false
     boolean android = false
 

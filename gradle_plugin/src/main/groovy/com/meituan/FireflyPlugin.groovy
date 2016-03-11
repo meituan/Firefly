@@ -15,7 +15,7 @@ class FireflyPlugin implements Plugin<Project> {
     private static  String DEPENDENCY_TASK_NAME;
     void apply(Project target) {
 
-        target.extensions.create("firefly", FireflyArgs)
+        target.extensions.create("firefly", FireflyArgs, target)
         target.afterEvaluate {
             if (target.plugins.hasPlugin('com.android.library') || target.plugins.hasPlugin('android')) {
                 DEPENDENCY_TASK_NAME=ANDROID_DEPENDENCY_TASK_NAME;

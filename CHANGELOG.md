@@ -2,6 +2,9 @@
 
 -------
 
+## 0.2.4
+* Bugfix: Misuse of project.projectDir in gradle plugin
+
 ## 0.2.3
 * Bugfix: If enum value is > 1k, comma is added in the integer in the generated Java file
 * Bugfix: Single quotation mark is not accepted during Java files generation
