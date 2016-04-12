@@ -43,6 +43,7 @@ import static com.meituan.firefly.TypeAdapter.*;
  */
 public final class Thrift {
     public static final Thrift instance = new Thrift();
+    private static boolean hasDefaultValue = false;
     private final Map<Method, FunctionCall> functionCallMap = new HashMap<>();
     private final Map<Type, TypeAdapter> typeAdapterMap = new HashMap<>();
     private final List<TypeAdapter.TypeAdapterFactory> typeAdapterFactories = new ArrayList<>();
@@ -64,6 +65,14 @@ public final class Thrift {
         typeAdapterFactories.add(new MapTypeAdapterFactory());
         typeAdapterFactories.add(new EnumTypeAdapterFactory());
         typeAdapterFactories.add(new StructTypeAdapterFactory());
+    }
+
+    public static void setDefaultValue(boolean defaultValue) {
+        Thrift.hasDefaultValue = defaultValue;
+    }
+
+    public static boolean hasDefaultValue() {
+        return hasDefaultValue;
     }
 
     public interface TProtocolFactory {
