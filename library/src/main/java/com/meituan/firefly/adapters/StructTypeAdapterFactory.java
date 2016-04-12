@@ -141,7 +141,7 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException(e);
             }
-            if (Thrift.hasDefaultValue()) {
+            if (Thrift.instance.hasDefaultValue()) {
                 //Set default values
                 for (Field f : result.getClass().getFields()) {
                     f.setAccessible(true);
