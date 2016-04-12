@@ -141,33 +141,32 @@ public class StructTypeAdapterFactory implements TypeAdapter.TypeAdapterFactory 
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException(e);
             }
-            //Set default values
-            for (Field f : result.getClass().getFields()) {
-                f.setAccessible(true);
-                try {
-                    if (f.get(result) == null) {
-                        f.set(result, getDefaultValueForType(f.getType()));
+            if (Thrift.hasDefaultValue()) {
+                //Set default values
+                for (Field f : result.getClass().getFields()) {
+                    f.setAccessible(true);
+                    try {
+                        if (f.get(result) == null) {
+                            f.set(result, getDefaultValueForType(f.getType()));
+                        }
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
                     }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
                 }
             }
             return result;
         }
-        
-        private Object getDefaultValueForType(Class<?> type){
-            if( type == Integer.class ){
+
+        private Object getDefaultValueForType(Class<?> type) {
+            if (type == Integer.class) {
                 return Integer.valueOf(0);
-            }
-            else if(type == Double.class ){
+            } else if (type == Double.class) {
                 return Double.valueOf(0);
-            }
-            else if(type == Short.class){
+            } else if (type == Short.class) {
                 return Short.valueOf((short) 0);
-            }
-            else if(type == Long.class){
+            } else if (type == Long.class) {
                 return Long.valueOf(0L);
-            } else if(type == Boolean.class){
+            } else if (type == Boolean.class) {
                 return Boolean.valueOf(false);
             }
             return null;
